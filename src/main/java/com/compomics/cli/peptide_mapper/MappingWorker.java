@@ -7,14 +7,14 @@ import com.compomics.util.gui.waiting.waitinghandlers.WaitingHandlerCLIImpl;
 import com.compomics.util.parameters.identification.advanced.SequenceMatchingParameters;
 import com.compomics.util.experiment.identification.amino_acid_tags.Tag;
 import com.compomics.util.experiment.identification.protein_inference.fm_index.FMIndex;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.regex.Pattern;
 import com.compomics.util.experiment.identification.utils.PeptideUtils;
+import com.compomics.util.io.flat.SimpleFileReader;
+import com.compomics.util.io.flat.SimpleFileWriter;
 import com.compomics.util.parameters.identification.IdentificationParameters;
+import com.compomics.util.threading.SimpleSemaphore;
 
 /**
  * MappingWorker.
@@ -23,34 +23,37 @@ import com.compomics.util.parameters.identification.IdentificationParameters;
  */
 public class MappingWorker implements Runnable {
 
-    WaitingHandlerCLIImpl waitingHandlerCLIImpl = null;
-    FastaMapper peptideMapper = null;
-    SequenceMatchingParameters sequenceMatchingPreferences = null;
-    BufferedReader br = null;
-    PrintWriter writer = null;
-    int NUM_READS = 1000;
-    boolean flanking = false;
-    boolean peptideMapping = false;
+    private final WaitingHandlerCLIImpl waitingHandlerCLIImpl;
+    private final FastaMapper peptideMapper;
+    private final SequenceMatchingParameters sequenceMatchingPreferences;
+    private final SimpleSemaphore bufferMutex;
+    private final SimpleFileReader reader;
+    private final SimpleFileWriter writer;
+    private static final int NUM_READS = 1000;
+    private final boolean flanking;
+    private final boolean peptideMapping;
     public Exception exception = null;
 
     public MappingWorker(WaitingHandlerCLIImpl waitingHandlerCLIImpl,
             FastaMapper peptideMapper,
             IdentificationParameters identificationParameters,
-            BufferedReader br,
-            PrintWriter writer,
+            SimpleFileReader reader,
+            SimpleSemaphore bufferMutex,
+            SimpleFileWriter writer,
             boolean peptideMapping
     ) {
         this.waitingHandlerCLIImpl = waitingHandlerCLIImpl;
         this.peptideMapper = peptideMapper;
         this.sequenceMatchingPreferences = identificationParameters.getSequenceMatchingParameters();
-        this.br = br;
+        this.reader = reader;
+        this.bufferMutex = bufferMutex;
         this.writer = writer;
         this.flanking = identificationParameters.getSearchParameters().getFlanking();
         this.peptideMapping = peptideMapping;
     }
 
     public String flanking(PeptideProteinMapping peptideProteinMapping, FastaMapper peptideMapper) {
-        
+
         String peptide = peptideProteinMapping.getPeptideSequence();
         String accession = peptideProteinMapping.getProteinAccession();
         int peptideLength = peptide.length();
@@ -75,23 +78,35 @@ public class MappingWorker implements Runnable {
 
     @Override
     public void run() {
-        
+
         ArrayList<String> rows = new ArrayList<>();
-        HashSet<String> outputData = new HashSet<>();
+        ArrayList<String> outputData = new ArrayList<>();
 
         while (true) {
             rows.clear();
             outputData.clear();
 
-            // readin input file batch wise
+            // read input file batch wise
             try {
-                String row = "";
+                String row;
+
+                bufferMutex.acquire();
+
                 int i = 0;
-                //synchronized(br){
-                while (!waitingHandlerCLIImpl.isRunCanceled() && i++ < NUM_READS && (row = br.readLine()) != null) {
-                    rows.add(row);
+
+                while (!waitingHandlerCLIImpl.isRunCanceled() && i++ < NUM_READS && (row = reader.readLine()) != null) {
+
+                    row = row.trim();
+
+                    if (!row.isEmpty()) {
+
+                        rows.add(row);
+
+                    }
                 }
-                //}
+
+                bufferMutex.release();
+
                 if (waitingHandlerCLIImpl.isRunCanceled() || rows.isEmpty()) {
                     break;
                 }
@@ -132,7 +147,9 @@ public class MappingWorker implements Runnable {
                                 modifications = "," + PeptideUtils.getVariableModificationsAsString(peptideProteinMapping.getVariableModifications());
                             }
 
-                            outputData.add(peptide + "," + accession + "," + startIndex + modifications);
+                            outputData.add(
+                                    String.join(",", peptide, accession, startIndex + modifications)
+                            );
                         }
                         waitingHandlerCLIImpl.increaseSecondaryProgressCounter();
                     } catch (Exception e) {
@@ -180,7 +197,9 @@ public class MappingWorker implements Runnable {
                                 modifications = "," + PeptideUtils.getVariableModificationsAsString(peptideProteinMapping.getVariableModifications());
                             }
 
-                            outputData.add(tagString + "," + peptide + "," + accession + "," + startIndex + modifications);
+                            outputData.add(
+                                    String.join(",", tagString, peptide, accession, startIndex + modifications)
+                            );
                         }
                         waitingHandlerCLIImpl.increaseSecondaryProgressCounter();
                     } catch (Exception e) {
@@ -192,14 +211,12 @@ public class MappingWorker implements Runnable {
 
             // write out processed batch
             try {
-                //synchronized(br){
                 for (String output : outputData) {
                     if (waitingHandlerCLIImpl.isRunCanceled()) {
                         break;
                     }
-                    writer.println(output);
+                    writer.writeLine(output);
                 }
-                //}
             } catch (Exception e) {
                 exception = new IOException("Error: could not write into file.\n\n" + e);
                 waitingHandlerCLIImpl.setRunCanceled();

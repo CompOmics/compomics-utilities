@@ -12,14 +12,15 @@ import com.compomics.util.parameters.identification.IdentificationParameters;
 import com.compomics.util.parameters.identification.advanced.SequenceMatchingParameters;
 import java.io.File;
 import java.io.PrintWriter;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import com.compomics.util.experiment.identification.protein_inference.FastaMapper;
 import com.compomics.util.experiment.io.identification.IdfileReader;
 import com.compomics.util.experiment.io.identification.IdfileReaderFactory;
 import com.compomics.util.experiment.io.mass_spectrometry.MsFileHandler;
 import com.compomics.util.io.IoUtil;
 import com.compomics.util.io.compression.ZipUtils;
+import com.compomics.util.io.flat.SimpleFileReader;
+import com.compomics.util.io.flat.SimpleFileWriter;
+import com.compomics.util.threading.SimpleSemaphore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -321,29 +322,29 @@ public class PeptideMapperCLI {
 
                     case "-c": // number of cores
                         try {
-                        nCores = Integer.parseInt(args[argPos + 1]);
-                        if (nCores < 1 || 100000 < nCores) {
-                            throw new Exception();
+                            nCores = Integer.parseInt(args[argPos + 1]);
+                            if (nCores < 1 || 100000 < nCores) {
+                                throw new Exception();
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Parameter -c has no valid number.");
+                            System.exit(-1);
                         }
-                    } catch (Exception e) {
-                        System.out.println("Parameter -c has no valid number.");
-                        System.exit(-1);
-                    }
-                    argPos += 2;
-                    break;
+                        argPos += 2;
+                        break;
 
                     case "-u":  // use utilities parameter file
-                        
+
                         try {
-                        File parameterFile = new File(args[argPos + 1]);
-                        identificationParameters = IdentificationParameters.getIdentificationParameters(parameterFile);
-                    } catch (Exception e) {
-                        System.err.println("Error: cound not open or parse parameter file");
-                        System.exit(-1);
-                    }
-                    customParameters = true;
-                    argPos += 2;
-                    break;
+                            File parameterFile = new File(args[argPos + 1]);
+                            identificationParameters = IdentificationParameters.getIdentificationParameters(parameterFile);
+                        } catch (Exception e) {
+                            System.err.println("Error: cound not open or parse parameter file");
+                            System.exit(-1);
+                        }
+                        customParameters = true;
+                        argPos += 2;
+                        break;
 
                     default:
                         ++argPos;
@@ -399,8 +400,8 @@ public class PeptideMapperCLI {
     public static void runMapping(File fastaFile,
             WaitingHandlerCLIImpl waitingHandlerCLIImpl,
             IdentificationParameters identificationParameters,
-            String inputFileName,
-            String outputFileName,
+            String inputFilePath,
+            String outputFilePath,
             int nCores,
             boolean peptideMapping) {
 
@@ -411,9 +412,9 @@ public class PeptideMapperCLI {
         try {
             peptideMapper = new FMIndex(fastaFile, null, waitingHandlerCLIImpl, true, identificationParameters);
         } catch (Exception e) {
-            handleError(outputFileName, "Error: cound not index the fasta file", e);
+            handleError(outputFilePath, "Error: cound not index the fasta file", e);
         } catch (OutOfMemoryError e) {
-            handleError(outputFileName, "Error: not enough memory available. Please try to run Java with more memory, e.g.: java -Xmx16G ...\n\n", e);
+            handleError(outputFilePath, "Error: not enough memory available. Please try to run Java with more memory, e.g.: java -Xmx16G ...\n\n", e);
         }
 
         double diffTimeIndex = System.nanoTime() - startTimeIndex;
@@ -422,57 +423,61 @@ public class PeptideMapperCLI {
         System.out.println();
         System.out.println("Start mapping using " + nCores + " threads");
 
-        // open input / output files
-        BufferedReader br = null;
-        PrintWriter writer = null;
+        // Set up progress
         long lineCount = 0;
         try {
-            br = new BufferedReader(new FileReader(inputFileName), 1024 * 1024 * 10);
-            Path path = Paths.get(inputFileName);
+            Path path = Paths.get(inputFilePath);
             lineCount = Files.lines(path).count();
-            writer = new PrintWriter(outputFileName, "UTF-8");
         } catch (Exception e) {
-            handleError(outputFileName, "Error: could not open files properly.", e);
+            handleError(outputFilePath, "Error: could not open files properly.", e);
         }
+
         waitingHandlerCLIImpl.setSecondaryProgressCounterIndeterminate(false);
         waitingHandlerCLIImpl.setMaxSecondaryProgressCounter((int) lineCount);
         waitingHandlerCLIImpl.setSecondaryProgressCounter(0);
 
+        // Set up reader and writer
         // starting the mapping
-        try {
-            long startTimeMapping = System.nanoTime();
+        try (SimpleFileReader simpleFileReader = SimpleFileReader.getFileReader(new File(inputFilePath))) {
 
-            ArrayList<MappingWorker> workers = new ArrayList<>();
-            ExecutorService importPool = Executors.newFixedThreadPool(nCores);
-            for (int i = 0; i < nCores; ++i) {
-                MappingWorker mw = new MappingWorker(waitingHandlerCLIImpl, peptideMapper, identificationParameters, br, writer, peptideMapping);
-                importPool.submit(mw);
-                workers.add(mw);
-            };
-            importPool.shutdown();
-            if (!importPool.awaitTermination(TIMEOUT_DAYS, TimeUnit.DAYS)) {
-                System.out.println("Analysis timed out (time out: " + TIMEOUT_DAYS + " days)");
-            }
-            for (MappingWorker mw : workers) {
-                if (mw.exception != null) {
-                    throw mw.exception;
+            try (SimpleFileWriter writer = new SimpleFileWriter(new File(outputFilePath), false)) {
+
+                long startTimeMapping = System.nanoTime();
+
+                ArrayList<MappingWorker> workers = new ArrayList<>();
+                ExecutorService importPool = Executors.newFixedThreadPool(nCores);
+                SimpleSemaphore readMutex = new SimpleSemaphore(1);
+
+                for (int i = 0; i < nCores; ++i) {
+                    MappingWorker mw = new MappingWorker(
+                            waitingHandlerCLIImpl,
+                            peptideMapper,
+                            identificationParameters,
+                            simpleFileReader,
+                            readMutex,
+                            writer,
+                            peptideMapping
+                    );
+                    importPool.submit(mw);
+                    workers.add(mw);
                 }
+                importPool.shutdown();
+                if (!importPool.awaitTermination(TIMEOUT_DAYS, TimeUnit.DAYS)) {
+                    System.out.println("Analysis timed out (time out: " + TIMEOUT_DAYS + " days)");
+                }
+                for (MappingWorker mw : workers) {
+                    if (mw.exception != null) {
+                        throw mw.exception;
+                    }
+                }
+
+                long diffTimeMapping = System.nanoTime() - startTimeMapping;
+                System.out.println();
+                System.out.println("Mapping " + lineCount + " peptides took " + (diffTimeMapping / 1e9) + " seconds");
+
             }
-
-            long diffTimeMapping = System.nanoTime() - startTimeMapping;
-            System.out.println();
-            System.out.println("Mapping " + lineCount + " peptides took " + (diffTimeMapping / 1e9) + " seconds");
-
         } catch (Exception e) {
-            handleError(outputFileName, "Error: mapping went wrong", e);
-        }
-
-        // close everything
-        try {
-            writer.close();
-            br.close();
-        } catch (Exception e) {
-            handleError(outputFileName, "Error: could not close files properly", e);
+            handleError(outputFilePath, "Error: mapping went wrong", e);
         }
     }
 }
