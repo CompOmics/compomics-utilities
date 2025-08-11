@@ -13,6 +13,7 @@ import com.compomics.util.parameters.identification.advanced.SequenceMatchingPar
 import java.io.File;
 import java.io.PrintWriter;
 import com.compomics.util.experiment.identification.protein_inference.FastaMapper;
+import com.compomics.util.experiment.io.biology.protein.SequenceProvider;
 import com.compomics.util.experiment.io.identification.IdfileReader;
 import com.compomics.util.experiment.io.identification.IdfileReaderFactory;
 import com.compomics.util.experiment.io.mass_spectrometry.MsFileHandler;
@@ -406,7 +407,7 @@ public class PeptideMapperCLI {
             boolean peptideMapping) {
 
         // setting up the mapper
-        FastaMapper peptideMapper = null;
+        FMIndex peptideMapper = null;
         System.out.println("Start indexing fasta file");
         long startTimeIndex = System.nanoTime();
         try {
@@ -441,6 +442,10 @@ public class PeptideMapperCLI {
         try (SimpleFileReader simpleFileReader = SimpleFileReader.getFileReader(new File(inputFilePath))) {
 
             try (SimpleFileWriter writer = new SimpleFileWriter(new File(outputFilePath), false)) {
+
+                writer.writeLine(
+                        String.join(",", "query", "accession", "index", "sequence_at_index", "modifications")
+                );
 
                 long startTimeMapping = System.nanoTime();
 

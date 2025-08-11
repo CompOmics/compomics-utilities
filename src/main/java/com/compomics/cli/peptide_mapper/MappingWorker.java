@@ -119,7 +119,9 @@ public class MappingWorker implements Runnable {
 
             // map peptides sequences
             if (peptideMapping) {
+                
                 for (String inputPeptide : rows) {
+                
                     if (waitingHandlerCLIImpl.isRunCanceled()) {
                         break;
                     }
@@ -133,6 +135,7 @@ public class MappingWorker implements Runnable {
 
                     try {
                         for (PeptideProteinMapping peptideProteinMapping : peptideMapper.getProteinMapping(inputPeptide.toUpperCase(), sequenceMatchingPreferences)) {
+                            
                             String peptide = peptideProteinMapping.getPeptideSequence();
 
                             String accession = peptideProteinMapping.getProteinAccession();
@@ -146,9 +149,9 @@ public class MappingWorker implements Runnable {
                             if (peptideProteinMapping.getVariableModifications() != null) {
                                 modifications = "," + PeptideUtils.getVariableModificationsAsString(peptideProteinMapping.getVariableModifications());
                             }
-
+                            
                             outputData.add(
-                                    String.join(",", peptide, accession, startIndex + modifications)
+                                    String.join(",", inputPeptide, accession, Integer.toString(startIndex), peptide, modifications)
                             );
                         }
                         waitingHandlerCLIImpl.increaseSecondaryProgressCounter();
@@ -183,6 +186,7 @@ public class MappingWorker implements Runnable {
 
                     try {
                         for (PeptideProteinMapping peptideProteinMapping : peptideMapper.getProteinMapping(tag, sequenceMatchingPreferences)) {
+                            
                             String peptide = peptideProteinMapping.getPeptideSequence();
 
                             String accession = peptideProteinMapping.getProteinAccession();
@@ -196,9 +200,9 @@ public class MappingWorker implements Runnable {
                             if (peptideProteinMapping.getVariableModifications() != null) {
                                 modifications = "," + PeptideUtils.getVariableModificationsAsString(peptideProteinMapping.getVariableModifications());
                             }
-
+                            
                             outputData.add(
-                                    String.join(",", tagString, peptide, accession, startIndex + modifications)
+                                    String.join(",", tagString, accession, Integer.toString(startIndex), peptide, modifications)
                             );
                         }
                         waitingHandlerCLIImpl.increaseSecondaryProgressCounter();
