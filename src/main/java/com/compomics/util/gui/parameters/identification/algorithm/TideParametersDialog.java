@@ -33,7 +33,8 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
      *
      * @param parent the parent frame
      * @param tideParameters the Tide parameters
-     * @param editable boolean indicating whether the settings can be edited by the user
+     * @param editable boolean indicating whether the settings can be edited by
+     * the user
      */
     public TideParametersDialog(java.awt.Frame parent, TideParameters tideParameters, boolean editable) {
         super(parent, true);
@@ -52,7 +53,8 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
      * @param owner the dialog owner
      * @param parent the parent frame
      * @param tideParameters the Tide parameters
-     * @param editable boolean indicating whether the settings can be edited by the user
+     * @param editable boolean indicating whether the settings can be edited by
+     * the user
      */
     public TideParametersDialog(Dialog owner, java.awt.Frame parent, TideParameters tideParameters, boolean editable) {
         super(owner, true);
@@ -69,7 +71,7 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
      * Sets up the GUI.
      */
     private void setUpGUI() {
-        
+
         removePrecursorPeakCombo.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
         enzymeTypeCmb.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
         useFlankingCmb.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
@@ -80,11 +82,11 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
         keepTerminalAaCombo.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
         removeMethionineCmb.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
         exactPvalueCombo.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
-        spScoreCombo.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
+        scoreFunctionCombo.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
         useNeutralLossCmb.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
         outputFormatCombo.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
         removeTempFoldersCmb.setRenderer(new com.compomics.util.gui.renderers.AlignedListCellRenderer(SwingConstants.CENTER));
-        
+
         minPepLengthTxt.setEditable(editable);
         minPepLengthTxt.setEnabled(editable);
         maxPepLengthTxt.setEditable(editable);
@@ -109,7 +111,7 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
         decoySeedTxt.setEnabled(editable);
         removeTempFoldersCmb.setEnabled(editable);
         exactPvalueCombo.setEnabled(editable);
-        spScoreCombo.setEnabled(editable);
+        scoreFunctionCombo.setEnabled(editable);
         minSpectrumMzTxt.setEditable(editable);
         minSpectrumMzTxt.setEnabled(editable);
         maxSpectrumMzTxt.setEditable(editable);
@@ -128,12 +130,12 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
         numberMatchesTxt.setEditable(editable);
         numberMatchesTxt.setEnabled(editable);
         outputFormatCombo.setEnabled(editable);
-        
+
     }
 
     /**
      * Populates the GUI using the given settings.
-     * 
+     *
      * @param tideParameters the parameters to display
      */
     private void populateGUI(TideParameters tideParameters) {
@@ -206,12 +208,8 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
                 exactPvalueCombo.setSelectedIndex(1);
             }
         }
-        if (tideParameters.getComputeSpScore() != null) {
-            if (tideParameters.getComputeSpScore()) {
-                spScoreCombo.setSelectedIndex(0);
-            } else {
-                spScoreCombo.setSelectedIndex(1);
-            }
+        if (tideParameters.getScoreFunction() != null) {
+            scoreFunctionCombo.setSelectedItem(tideParameters.getScoreFunction());
         }
         if (tideParameters.getMinSpectrumMz() != null) {
             minSpectrumMzTxt.setText(tideParameters.getMinSpectrumMz() + "");
@@ -272,7 +270,7 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
     public boolean isCancelled() {
         return cancelled;
     }
-    
+
     @Override
     public IdentificationAlgorithmParameter getParameters() {
         return getInput();
@@ -312,7 +310,6 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
 //        if (!input.equals("")) {
 //            result.setMinVariableModificationsPerPeptide(Integer.valueOf(input));
 //        }
-        
         input = maxPtmsPerPeptideTxt.getText().trim();
         if (!input.equals("")) {
             result.setMaxVariableModificationsPerPeptide(Integer.valueOf(input));
@@ -335,7 +332,7 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
         }
 
         result.setComputeExactPValues(exactPvalueCombo.getSelectedIndex() == 0);
-        result.setComputeSpScore(spScoreCombo.getSelectedIndex() == 0);
+        result.setScoreFunction((String) scoreFunctionCombo.getSelectedItem());
 
         input = minSpectrumMzTxt.getText().trim();
         if (!input.equals("")) {
@@ -447,8 +444,8 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
         minPeaksTxt = new javax.swing.JTextField();
         exactPvalueLabel = new javax.swing.JLabel();
         exactPvalueCombo = new javax.swing.JComboBox();
-        spScoreLabel = new javax.swing.JLabel();
-        spScoreCombo = new javax.swing.JComboBox();
+        scoreFunctionLabel = new javax.swing.JLabel();
+        scoreFunctionCombo = new javax.swing.JComboBox();
         useNeutralLossLabel = new javax.swing.JLabel();
         useNeutralLossCmb = new javax.swing.JComboBox();
         mzBinOffsetLabel = new javax.swing.JLabel();
@@ -814,9 +811,9 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
 
         exactPvalueCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Yes", "No" }));
 
-        spScoreLabel.setText("Calculate SP Score");
+        scoreFunctionLabel.setText("Score Function");
 
-        spScoreCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Yes", "No" }));
+        scoreFunctionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "xcorr", "combined-p-values" }));
 
         useNeutralLossLabel.setText("Use Neutral Loss Peaks");
 
@@ -868,10 +865,10 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
                     .addGroup(searchPanelLayout.createSequentialGroup()
                         .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(spectrumMzLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(spScoreLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE))
+                            .addComponent(scoreFunctionLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(spScoreCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(scoreFunctionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(searchPanelLayout.createSequentialGroup()
                                 .addComponent(minSpectrumMzTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -916,8 +913,8 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
                     .addComponent(exactPvalueCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 0, 0)
                 .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(spScoreLabel)
-                    .addComponent(spScoreCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(scoreFunctionLabel)
+                    .addComponent(scoreFunctionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 0, 0)
                 .addGroup(searchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(minSpectrumMzTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1243,8 +1240,8 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
 
     /**
      * Check if the output format is compatible with PeptideShaker.
-     * 
-     * @param evt 
+     *
+     * @param evt
      */
     private void outputFormatComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_outputFormatComboActionPerformed
         if (outputFormatCombo.getSelectedIndex() != 0 && this.isVisible()) {
@@ -1287,7 +1284,7 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
         if (!minPtmsPerPeptideTxt.getText().trim().isEmpty()) {
             valid = GuiUtilities.validateIntegerInput(this, variablePtmsPerPeptideLabel, minPtmsPerPeptideTxt, "minimum number of variable PTMs", "Variable PTMs Error", true, showMessage, valid);
         }
-        
+
         if (!maxPtmsPerPeptideTxt.getText().trim().isEmpty()) {
             valid = GuiUtilities.validateIntegerInput(this, variablePtmsPerPeptideLabel, maxPtmsPerPeptideTxt, "maximum number of variable PTMs", "Variable PTMs Error", true, showMessage, valid);
         }
@@ -1415,9 +1412,9 @@ public class TideParametersDialog extends javax.swing.JDialog implements Algorit
     private javax.swing.JTextField removePrecursorPeakToleranceTxt;
     private javax.swing.JComboBox removeTempFoldersCmb;
     private javax.swing.JLabel removeTempFoldersLabel;
+    private javax.swing.JComboBox scoreFunctionCombo;
+    private javax.swing.JLabel scoreFunctionLabel;
     private javax.swing.JPanel searchPanel;
-    private javax.swing.JComboBox spScoreCombo;
-    private javax.swing.JLabel spScoreLabel;
     private javax.swing.JLabel spectrumMzDividerLabel;
     private javax.swing.JLabel spectrumMzLabel;
     private javax.swing.JTabbedPane tabbedPane;

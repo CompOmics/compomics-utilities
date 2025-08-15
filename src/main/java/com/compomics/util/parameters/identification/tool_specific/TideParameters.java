@@ -93,8 +93,18 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
     private String digestionType = "full-digest";
     /**
      * If true, the SP score will be computed.
+     *
+     * @deprecated Removed in Tide 4.3
      */
     private Boolean computeSpScore = false;
+    /**
+     * Function used for scoring PSMs. 'xcorr' is the original scoring function
+     * used by SEQUEST;`combined-p-values` combined (1) exact-p-value: a
+     * calibrated version of XCorr that uses dynamic programming and (2)
+     * residue-evidence-pvalue: a valibarated version of the ResEV that
+     * considers pairs of peaks, rather than single peaks; Default = xcorr.
+     */
+    private String scoreFunction = "xcorr";
     /**
      * The maximum number of spectrum matches per peptide.
      */
@@ -120,10 +130,17 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
      * spectrum will be searched and spectra with multiple charge states will be
      * searched once at each charge state. With 1, 2, or 3 only spectra with
      * that charge will be searched.
-     * 
+     *
      * @deprecated Removed in Tide 4.2 (or earlier)
      */
     private String spectrumCharges = "all";
+    /**
+     * If this is set to true, then all spectra are searched in all charge
+     * states from min-charge to max-charge. Otherwise, the default behavior is
+     * to search with all charge states only if a spectrum has no charge or
+     * charge=0. Default = false.
+     */
+    private Boolean overrideCharges = false;
     /**
      * If true, the precursor peak will be removed. The range removed is
      * specified by
@@ -302,7 +319,7 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
             if (!digestionType.equalsIgnoreCase(tideParameters.getDigestionType())) {
                 return false;
             }
-            if (!computeSpScore.equals(tideParameters.getComputeSpScore())) {
+            if (!getScoreFunction().equalsIgnoreCase(tideParameters.getScoreFunction())) {
                 return false;
             }
             if (!numberOfSpectrumMatches.equals(tideParameters.getNumberOfSpectrumMatches())) {
@@ -510,7 +527,7 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
 
         return output.toString();
     }
-    
+
 //    /**
 //     * Returns the minimum number of variable modifications allowed on a single
 //     * peptide. Null if no lower limit is set.
@@ -531,7 +548,6 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
 //    public void setMinVariableModificationsPerPeptide(Integer minVariableModificationsPerPeptide) {
 //        this.minVariableModificationsPerPeptide = minVariableModificationsPerPeptide;
 //    }
-
     /**
      * Returns the maximum number of variable modifications allowed on a single
      * peptide. Null if no upper limit is set.
@@ -818,6 +834,8 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
      * Returns true of the SP score is to be computed.
      *
      * @return the computeSpScore
+     * 
+     * @deprecated Removed in Tide 4.3
      */
     public Boolean getComputeSpScore() {
         if (computeSpScore == null) {
@@ -830,6 +848,8 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
      * Set if the SP score is to be computed.
      *
      * @param computeSpScore the computeSpScore to set
+     * 
+     * @deprecated Removed in Tide 4.3
      */
     public void setComputeSpScore(Boolean computeSpScore) {
         this.computeSpScore = computeSpScore;
@@ -1251,5 +1271,47 @@ public class TideParameters extends ExperimentObject implements IdentificationAl
      */
     public void setRemoveTempFolders(Boolean removeTempFolders) {
         this.removeTempFolders = removeTempFolders;
+    }
+
+    /**
+     * Returns true of the charges are to be overridden.
+     *
+     * @return the overrideCharges true of the charges are to be overridden.
+     */
+    public Boolean getOverrideCharges() {
+        if (overrideCharges == null) {
+            removeTempFolders = false;
+        }
+        return overrideCharges;
+    }
+
+    /**
+     * Set whether the charges are to be overridden.
+     *
+     * @param overrideCharges the overrideCharges to set
+     */
+    public void setOverrideCharges(Boolean overrideCharges) {
+        this.overrideCharges = overrideCharges;
+    }
+
+    /**
+     * Returns the name of the score function.
+     *
+     * @return the scoreFunction
+     */
+    public String getScoreFunction() {
+        if (scoreFunction == null) {
+            scoreFunction = "xcorr";
+        }
+        return scoreFunction;
+    }
+
+    /**
+     * Sets the score function.
+     *
+     * @param scoreFunction the scoreFunction to set
+     */
+    public void setScoreFunction(String scoreFunction) {
+        this.scoreFunction = scoreFunction;
     }
 }

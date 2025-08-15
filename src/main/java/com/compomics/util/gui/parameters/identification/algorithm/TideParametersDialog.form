@@ -552,11 +552,11 @@
                               <Group type="102" alignment="0" attributes="0">
                                   <Group type="103" groupAlignment="1" max="-2" attributes="0">
                                       <Component id="spectrumMzLabel" max="32767" attributes="0"/>
-                                      <Component id="spScoreLabel" pref="200" max="32767" attributes="1"/>
+                                      <Component id="scoreFunctionLabel" pref="200" max="32767" attributes="1"/>
                                   </Group>
                                   <EmptySpace type="separate" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                      <Component id="spScoreCombo" min="-2" pref="200" max="-2" attributes="0"/>
+                                      <Component id="scoreFunctionCombo" min="-2" pref="200" max="-2" attributes="0"/>
                                       <Group type="102" alignment="0" attributes="0">
                                           <Component id="minSpectrumMzTxt" min="-2" pref="77" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
@@ -612,8 +612,8 @@
                           </Group>
                           <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="spScoreLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="spScoreCombo" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="scoreFunctionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="scoreFunctionCombo" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
@@ -807,17 +807,17 @@
                     </Property>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="spScoreLabel">
+                <Component class="javax.swing.JLabel" name="scoreFunctionLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Calculate SP Score"/>
+                    <Property name="text" type="java.lang.String" value="Score Function"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JComboBox" name="spScoreCombo">
+                <Component class="javax.swing.JComboBox" name="scoreFunctionCombo">
                   <Properties>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
                       <StringArray count="2">
-                        <StringItem index="0" value="Yes"/>
-                        <StringItem index="1" value="No"/>
+                        <StringItem index="0" value="xcorr"/>
+                        <StringItem index="1" value="combined-p-values"/>
                       </StringArray>
                     </Property>
                   </Properties>
