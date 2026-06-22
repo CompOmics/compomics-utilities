@@ -28,6 +28,6 @@ public class InstaNovoRefinedIdfileReader extends InstaNovoCsvIdfileReader {
      * @param csvFile the CSV file
      */
     public InstaNovoRefinedIdfileReader(File csvFile) {
-        super(csvFile, Advocate.instanovoPlus, EXTENSION);
+        super(csvFile, Advocate.instanovoRefined, EXTENSION);
     }
 }

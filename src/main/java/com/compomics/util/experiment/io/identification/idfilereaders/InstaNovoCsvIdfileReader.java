@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.bind.JAXBException;
 
 /**
@@ -31,6 +33,10 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
      * The supported InstaNovo version.
      */
     private static final String SOFTWARE_VERSION = "1.2.2";
+    /**
+     * Pattern matching common scan or index tokens in spectrum titles.
+     */
+    private static final Pattern TITLE_NUMBER_PATTERN = Pattern.compile("(?i)(?:scan|index|scan_number)\\s*[=: ]\\s*(\\d+)");
     /**
      * The CSV file.
      */
@@ -95,6 +101,7 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
 
         ArrayList<SpectrumMatch> result = new ArrayList<>();
         HashMap<String, SpectrumMatch> matches = new HashMap<>();
+        HashMap<String, SpectrumTitleLookup> spectrumTitleLookups = new HashMap<>();
 
         try (SimpleFileReader reader = SimpleFileReader.getFileReader(csvFile)) {
 
@@ -138,10 +145,22 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
                 String experimentName = experimentIndex >= 0 ? getValue(values, experimentIndex).trim() : "";
                 String spectrumId = spectrumIdIndex >= 0 ? getValue(values, spectrumIdIndex).trim() : "";
                 String scanNumber = scanNumberIndex >= 0 ? getValue(values, scanNumberIndex).trim() : "";
-                String spectrumFileName = getSpectrumFileName(spectrumProvider, experimentName, spectrumId);
-                String spectrumTitle = getSpectrumTitle(spectrumProvider, spectrumFileName, spectrumId, scanNumber);
+                Integer charge = getCharge(getValue(values, chargeIndex), lineNumber, waitingHandler);
 
-                int charge = Integer.parseInt(getValue(values, chargeIndex));
+                if (charge == null) {
+                    continue;
+                }
+
+                String spectrumFileName = getSpectrumFileName(spectrumProvider, experimentName, spectrumId);
+                SpectrumTitleLookup spectrumTitleLookup = spectrumTitleLookups.get(spectrumFileName);
+
+                if (spectrumTitleLookup == null) {
+                    spectrumTitleLookup = new SpectrumTitleLookup(spectrumProvider, spectrumFileName);
+                    spectrumTitleLookups.put(spectrumFileName, spectrumTitleLookup);
+                }
+
+                String spectrumTitle = getSpectrumTitle(spectrumTitleLookup, spectrumFileName, spectrumId, scanNumber);
+
                 double logProbability = Util.readDoubleAsString(getValue(values, scoreIndex));
                 double score = -logProbability;
 
@@ -186,11 +205,15 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
         versions.add(SOFTWARE_VERSION);
         result.put(advocate.getName(), versions);
 
-        if (advocate == Advocate.instanovoPlus && getExtension().contains("refined")) {
+        if (advocate == Advocate.instanovoRefined) {
 
             ArrayList<String> instaNovoVersions = new ArrayList<>();
             instaNovoVersions.add(SOFTWARE_VERSION);
             result.put(Advocate.instanovo.getName(), instaNovoVersions);
+
+            ArrayList<String> instaNovoPlusVersions = new ArrayList<>();
+            instaNovoPlusVersions.add(SOFTWARE_VERSION);
+            result.put(Advocate.instanovoPlus.getName(), instaNovoPlusVersions);
         }
 
         return result;
@@ -247,48 +270,72 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
      *
      * @return the spectrum title
      */
-    private String getSpectrumTitle(SpectrumProvider spectrumProvider, String spectrumFileName, String spectrumId, String scanNumber) {
+    private String getSpectrumTitle(SpectrumTitleLookup spectrumTitleLookup, String spectrumFileName, String spectrumId, String scanNumber) {
 
-        String[] titles = spectrumProvider.getSpectrumTitles(spectrumFileName);
+        String title = spectrumTitleLookup.getTitle(spectrumId);
 
-        if (titles == null || titles.length == 0) {
-            throw new IllegalArgumentException("No spectra found for file '" + spectrumFileName + "'.");
+        if (title != null) {
+            return title;
         }
 
-        ArrayList<String> candidates = new ArrayList<>();
-
-        if (spectrumId != null && !spectrumId.isEmpty()) {
-            candidates.add(spectrumId);
+        if (spectrumId != null) {
             int separatorIndex = spectrumId.indexOf(':');
+
             if (separatorIndex >= 0 && separatorIndex < spectrumId.length() - 1) {
-                candidates.add(spectrumId.substring(separatorIndex + 1));
-            }
-        }
 
-        if (scanNumber != null && !scanNumber.isEmpty()) {
-            candidates.add(scanNumber);
-        }
+                title = spectrumTitleLookup.getTitle(spectrumId.substring(separatorIndex + 1));
 
-        for (String candidate : candidates) {
-            for (String title : titles) {
-                if (title.equals(candidate) || title.equalsIgnoreCase(candidate)) {
+                if (title != null) {
                     return title;
                 }
             }
         }
 
         if (scanNumber != null && !scanNumber.isEmpty()) {
-            try {
-                int scanIndex = Integer.parseInt(scanNumber);
-                if (scanIndex >= 0 && scanIndex < titles.length) {
-                    return titles[scanIndex];
-                }
-            } catch (NumberFormatException e) {
-                // Ignore and report the missing title below.
+
+            title = spectrumTitleLookup.getTitle(scanNumber);
+
+            if (title != null) {
+                return title;
+            }
+
+            title = spectrumTitleLookup.getTitleForNumber(scanNumber);
+
+            if (title != null) {
+                return title;
             }
         }
 
         throw new IllegalArgumentException("Unable to match InstaNovo spectrum id '" + spectrumId + "' to a spectrum title in file '" + spectrumFileName + "'.");
+    }
+
+    /**
+     * Returns the precursor charge.
+     *
+     * @param value the charge column value
+     * @param lineNumber the line number
+     * @param waitingHandler the waiting handler
+     *
+     * @return the charge, or null if the row should be skipped
+     */
+    private Integer getCharge(String value, int lineNumber, WaitingHandler waitingHandler) {
+
+        String charge = value == null ? "" : value.trim();
+
+        try {
+            return Integer.parseInt(charge);
+        } catch (NumberFormatException e) {
+
+            if (waitingHandler != null) {
+                waitingHandler.appendReport(
+                        "Skipping InstaNovo csv line " + lineNumber + ": invalid precursor charge '" + charge + "'.",
+                        true,
+                        true
+                );
+            }
+
+            return null;
+        }
     }
 
     /**
@@ -540,6 +587,159 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
         values.add(currentValue.toString());
 
         return values;
+    }
+
+    /**
+     * Spectrum title lookup cache for one spectrum file.
+     */
+    private static class SpectrumTitleLookup {
+
+        /**
+         * Titles indexed by exact and lower-case title.
+         */
+        private final HashMap<String, String> titles = new HashMap<>();
+        /**
+         * Titles indexed by scan or index number tokens parsed from the title.
+         */
+        private final HashMap<String, String> titleByNumber = new HashMap<>();
+
+        /**
+         * Constructor.
+         *
+         * @param spectrumProvider the spectrum provider
+         * @param spectrumFileName the spectrum file name without extension
+         */
+        private SpectrumTitleLookup(SpectrumProvider spectrumProvider, String spectrumFileName) {
+
+            String[] spectrumTitles = spectrumProvider.getSpectrumTitles(spectrumFileName);
+
+            if (spectrumTitles == null || spectrumTitles.length == 0) {
+                throw new IllegalArgumentException("No spectra found for file '" + spectrumFileName + "'.");
+            }
+
+            for (String title : spectrumTitles) {
+                addTitle(title);
+            }
+        }
+
+        /**
+         * Adds a title.
+         *
+         * @param title the title
+         */
+        private void addTitle(String title) {
+
+            if (title == null) {
+                return;
+            }
+
+            titles.put(title, title);
+            titles.put(title.toLowerCase(), title);
+
+            Matcher matcher = TITLE_NUMBER_PATTERN.matcher(title);
+
+            while (matcher.find()) {
+                addNumber(matcher.group(1), title);
+            }
+        }
+
+        /**
+         * Adds a scan or index number.
+         *
+         * @param number the number
+         * @param title the spectrum title
+         */
+        private void addNumber(String number, String title) {
+
+            String normalizedNumber = normalizeNumber(number);
+
+            if (normalizedNumber == null) {
+                return;
+            }
+
+            if (titleByNumber.containsKey(normalizedNumber)
+                    && !title.equals(titleByNumber.get(normalizedNumber))) {
+                titleByNumber.put(normalizedNumber, null);
+            } else {
+                titleByNumber.put(normalizedNumber, title);
+            }
+        }
+
+        /**
+         * Returns a title matching the given title candidate.
+         *
+         * @param candidate the candidate
+         *
+         * @return the title, or null if not found
+         */
+        private String getTitle(String candidate) {
+
+            if (candidate == null) {
+                return null;
+            }
+
+            String trimmedCandidate = candidate.trim();
+
+            if (trimmedCandidate.isEmpty()) {
+                return null;
+            }
+
+            String result = titles.get(trimmedCandidate);
+
+            if (result != null) {
+                return result;
+            }
+
+            return titles.get(trimmedCandidate.toLowerCase());
+        }
+
+        /**
+         * Returns a title matching the given scan or index number.
+         *
+         * @param candidate the candidate
+         *
+         * @return the title, or null if not found
+         */
+        private String getTitleForNumber(String candidate) {
+
+            String normalizedNumber = normalizeNumber(candidate);
+
+            return normalizedNumber == null ? null : titleByNumber.get(normalizedNumber);
+        }
+
+        /**
+         * Normalizes a positive integer string.
+         *
+         * @param number the number
+         *
+         * @return the normalized number
+         */
+        private String normalizeNumber(String number) {
+
+            if (number == null) {
+                return null;
+            }
+
+            String trimmedNumber = number.trim();
+
+            if (trimmedNumber.isEmpty()) {
+                return null;
+            }
+
+            for (int i = 0; i < trimmedNumber.length(); i++) {
+                if (!Character.isDigit(trimmedNumber.charAt(i))) {
+                    return null;
+                }
+            }
+
+            int startIndex = 0;
+
+            while (startIndex < trimmedNumber.length() - 1 && trimmedNumber.charAt(startIndex) == '0') {
+                startIndex++;
+            }
+
+            return trimmedNumber.substring(startIndex);
+        }
     }
 
     /**

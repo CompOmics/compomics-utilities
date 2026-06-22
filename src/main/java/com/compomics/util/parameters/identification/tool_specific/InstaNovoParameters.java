@@ -16,11 +16,11 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      */
     static final long serialVersionUID = -2295564912139753378L;
     /**
-     * Default InstaNovo model identifier for v1.2.2.
+     * Default InstaNovo transformer model identifier used by InstaNovo v1.2.2.
      */
     public static final String DEFAULT_INSTANOVO_MODEL = "instanovo-v1.2.0";
     /**
-     * Default InstaNovo+ model identifier for v1.2.2 refinement.
+     * Default InstaNovo+ diffusion model identifier used by InstaNovo v1.2.2.
      */
     public static final String DEFAULT_INSTANOVO_PLUS_MODEL = "instanovoplus-v1.1.0";
     /**

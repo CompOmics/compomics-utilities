@@ -191,6 +191,10 @@ public class Advocate extends ExperimentObject {
      */
     public static final Advocate instanovoPlus = new Advocate(39, "InstaNovo+", AdvocateType.sequencing_algorithm, new Color(123, 104, 238));
     /**
+     * The InstaNovo predictions refined with InstaNovo+ de novo sequencing algorithm.
+     */
+    public static final Advocate instanovoRefined = new Advocate(40, "InstaNovo with refinement", AdvocateType.sequencing_algorithm, new Color(72, 209, 204));
+    /**
      * Advocate type for mzId files where no software is annotated.
      */
     public static final Advocate genericMzId = new Advocate(100, "mzid", AdvocateType.unknown);
@@ -319,7 +323,7 @@ public class Advocate extends ExperimentObject {
      * @return the implemented advocates in an array
      */
     public static Advocate[] values() {
-        Advocate[] result = new Advocate[42 + userAdvocates.size()];
+        Advocate[] result = new Advocate[43 + userAdvocates.size()];
         int i = 0;
         result[i] = peptideShaker;
         result[++i] = onyaseEngine;
@@ -363,6 +367,7 @@ public class Advocate extends ExperimentObject {
         result[++i] = msFragger;
         result[++i] = instanovo;
         result[++i] = instanovoPlus;
+        result[++i] = instanovoRefined;
 
         for (Advocate advocate : userAdvocates.values()) {
             result[++i] = advocate;
@@ -499,7 +504,7 @@ public class Advocate extends ExperimentObject {
             return "37819886";
         } else if (this == msFragger) {
             return "28394336";
-        } else if (this == instanovo || this == instanovoPlus) {
+        } else if (this == instanovo || this == instanovoPlus || this == instanovoRefined) {
             return null;
         } else {
             return null;

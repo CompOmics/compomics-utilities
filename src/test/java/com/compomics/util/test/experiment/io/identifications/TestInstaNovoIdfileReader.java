@@ -63,12 +63,13 @@ public class TestInstaNovoIdfileReader extends TestCase {
 
         Assert.assertNotNull(Advocate.getAdvocate("InstaNovo"));
         Assert.assertNotNull(Advocate.getAdvocate("InstaNovo+"));
+        Assert.assertNotNull(Advocate.getAdvocate("InstaNovo with refinement"));
         SimpleSpectrumProvider spectrumProvider = new SimpleSpectrumProvider();
         SearchParameters searchParameters = new SearchParameters();
 
         assertReader("test.instanovo.csv", Advocate.instanovo.getIndex(), spectrumProvider, searchParameters);
         assertReader("test.instanovoplus.csv", Advocate.instanovoPlus.getIndex(), spectrumProvider, searchParameters);
-        assertReader("test.instanovo.refined.csv", Advocate.instanovoPlus.getIndex(), spectrumProvider, searchParameters);
+        assertReader("test.instanovo.refined.csv", Advocate.instanovoRefined.getIndex(), spectrumProvider, searchParameters);
     }
 
     /**
@@ -135,10 +136,56 @@ public class TestInstaNovoIdfileReader extends TestCase {
 
         assertSampleReader(
                 new InstaNovoRefinedIdfileReader(writeCsv("sample.instanovo.refined.csv", INSTANOVO_COMBINED_V1_2_2)),
-                Advocate.instanovoPlus.getIndex(),
+                Advocate.instanovoRefined.getIndex(),
                 "LIRPLLK",
                 0
         );
+    }
+
+    /**
+     * Tests matching realistic spectrum titles by scan tokens without positional
+     * scan-number fallback.
+     *
+     * @throws Exception if an exception occurs
+     */
+    public void testSpectrumTitleLookupWithRealisticTitles() throws Exception {
+
+        File csvFile = writeCsv(
+                "realistic-titles.instanovo.csv",
+                "experiment_name,scan_number,spectrum_id,precursor_mz,precursor_charge,prediction_id,predictions,log_probs\n"
+                + "example,1,example:1,419.314971923828,2,0,PEPTIDE,-1.0\n"
+        );
+
+        IdfileReader idfileReader = new InstaNovoIdfileReader(csvFile);
+        SimpleSpectrumProvider spectrumProvider = new SimpleSpectrumProvider(
+                new String[]{"example"},
+                new String[]{"controllerType=0 controllerNumber=1 scan=1", "controllerType=0 controllerNumber=1 scan=2"}
+        );
+        ArrayList<SpectrumMatch> spectrumMatches = idfileReader.getAllSpectrumMatches(spectrumProvider, null, new SearchParameters());
+
+        Assert.assertEquals(1, spectrumMatches.size());
+        Assert.assertEquals("controllerType=0 controllerNumber=1 scan=1", spectrumMatches.get(0).getSpectrumTitle());
+    }
+
+    /**
+     * Tests charge parsing robustness.
+     *
+     * @throws Exception if an exception occurs
+     */
+    public void testChargeParsingSkipsInvalidRows() throws Exception {
+
+        File csvFile = writeCsv(
+                "charges.instanovo.csv",
+                "experiment_name,scan_number,spectrum_id,precursor_mz,precursor_charge,prediction_id,predictions,log_probs\n"
+                + "example,0,example:0,419.314971923828,not-a-charge,0,PEPTIDE,-1.0\n"
+                + "example,1,example:1,419.314971923828, 2 ,0,PEPTIDE,-1.0\n"
+        );
+
+        IdfileReader idfileReader = new InstaNovoIdfileReader(csvFile);
+        ArrayList<SpectrumMatch> spectrumMatches = idfileReader.getAllSpectrumMatches(new SimpleSpectrumProvider(), null, new SearchParameters());
+
+        Assert.assertEquals(1, spectrumMatches.size());
+        Assert.assertEquals("1", spectrumMatches.get(0).getSpectrumTitle());
     }
 
     /**
@@ -230,6 +277,11 @@ public class TestInstaNovoIdfileReader extends TestCase {
         Assert.assertEquals("DMNSPK", peptideAssumption.getPeptide().getSequence());
         Assert.assertEquals(2, peptideAssumption.getPeptide().getVariableModifications().length);
         Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.getAdvocate(advocateIndex).getName()));
+
+        if (advocateIndex == Advocate.instanovoRefined.getIndex()) {
+            Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.instanovo.getName()));
+            Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.instanovoPlus.getName()));
+        }
     }
 
     /**
@@ -268,6 +320,11 @@ public class TestInstaNovoIdfileReader extends TestCase {
         Assert.assertEquals(expectedSequence, peptideAssumption.getPeptide().getSequence());
         Assert.assertEquals(expectedVariableModifications, peptideAssumption.getPeptide().getVariableModifications().length);
         Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.getAdvocate(advocateIndex).getName()));
+
+        if (advocateIndex == Advocate.instanovoRefined.getIndex()) {
+            Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.instanovo.getName()));
+            Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.instanovoPlus.getName()));
+        }
     }
 
     /**
@@ -343,6 +400,33 @@ public class TestInstaNovoIdfileReader extends TestCase {
      * Simple spectrum provider for tests.
      */
     private static class SimpleSpectrumProvider implements SpectrumProvider {
+
+        /**
+         * File names without extensions.
+         */
+        private final String[] fileNames;
+        /**
+         * Spectrum titles.
+         */
+        private final String[] titles;
+
+        /**
+         * Default constructor.
+         */
+        private SimpleSpectrumProvider() {
+            this(new String[]{"example"}, new String[]{"0", "1", "2", "3", "4"});
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param fileNames the file names
+         * @param titles the spectrum titles
+         */
+        private SimpleSpectrumProvider(String[] fileNames, String[] titles) {
+            this.fileNames = fileNames;
+            this.titles = titles;
+        }
 
         @Override
         public Spectrum getSpectrum(String fileNameWithoutExtension, String spectrumTitle) {
@@ -421,12 +505,12 @@ public class TestInstaNovoIdfileReader extends TestCase {
 
         @Override
         public String[] getOrderedFileNamesWithoutExtensions() {
-            return new String[]{"example"};
+            return fileNames;
         }
 
         @Override
         public String[] getSpectrumTitles(String fileNameWithoutExtension) {
-            return new String[]{"0", "1", "2", "3", "4"};
+            return titles;
         }
 
         @Override
