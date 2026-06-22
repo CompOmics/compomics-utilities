@@ -24,6 +24,10 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      */
     public static final String DEFAULT_INSTANOVO_PLUS_MODEL = "instanovoplus-v1.1.0";
     /**
+     * Default prediction batch size for desktop SearchGUI runs.
+     */
+    public static final int DEFAULT_BATCH_SIZE = 16;
+    /**
      * The selected InstaNovo model id or path.
      */
     private String instaNovoModel = DEFAULT_INSTANOVO_MODEL;
@@ -43,7 +47,7 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      * The prediction batch size. A value below one lets InstaNovo use its
      * configuration default.
      */
-    private int batchSize = -1;
+    private int batchSize = DEFAULT_BATCH_SIZE;
     /**
      * Whether to use knapsack beam search.
      */
