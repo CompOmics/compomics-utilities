@@ -443,6 +443,48 @@ public class AminoAcidSequence extends ExperimentObject implements TagComponent 
 
     }
 
+    public ArrayList<Integer> getModificationIndexes() {
+        ArrayList<Integer> result = new ArrayList<>();
+        for (ModificationMatch modificationMatch : getVariableModifications()) {
+            if (!result.contains(modificationMatch.getSite())) {
+                result.add(modificationMatch.getSite());
+            }
+        }
+        return result;
+    }
+
+    public ArrayList<ModificationMatch> getModificationsAt(int site) {
+        ArrayList<ModificationMatch> result = new ArrayList<>();
+        for (ModificationMatch modificationMatch : getVariableModifications()) {
+            if (modificationMatch.getSite() == site) {
+                result.add(modificationMatch);
+            }
+        }
+        return result;
+    }
+
+    public static String getTaggedResidue(
+            char aminoAcid,
+            String modificationName,
+            ModificationParameters modificationParameters,
+            int modificationType,
+            boolean useHtmlColorCoding,
+            boolean useShortName
+    ) {
+        String[] variableModifications = new String[3];
+        variableModifications[1] = modificationName;
+        return ModificationUtils.getTaggedModifiedSequence(
+                modificationParameters,
+                Character.toString(aminoAcid),
+                variableModifications,
+                null,
+                null,
+                new String[3],
+                useHtmlColorCoding,
+                useShortName
+        );
+    }
+
     /**
      * Returns the variable modifications indexed by site. Modifications are
      * indexed by site as follows: N-term modifications are at index 0, C-term

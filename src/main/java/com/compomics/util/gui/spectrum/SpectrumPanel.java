@@ -1672,6 +1672,39 @@ public class SpectrumPanel extends GraphicsPanel {
         );
     }
 
+    public void addAutomaticDeNovoSequencing(
+            Peptide currentPeptide,
+            ArrayList<IonMatch> annotations,
+            int aForwardIon,
+            int aRewindIon,
+            int aDeNovoCharge,
+            boolean showForwardTags,
+            boolean showRewindTags,
+            double forwardIonPercentHeight,
+            double rewindIonPercentHeight,
+            ArrayList<float[]> alphaLevels,
+            boolean excludeFixedModifications,
+            boolean mirrored
+    ) {
+        addAutomaticDeNovoSequencing(
+                currentPeptide,
+                annotations.toArray(new IonMatch[0]),
+                aForwardIon,
+                aRewindIon,
+                aDeNovoCharge,
+                showForwardTags,
+                showRewindTags,
+                forwardIonPercentHeight,
+                rewindIonPercentHeight,
+                alphaLevels,
+                excludeFixedModifications,
+                mirrored,
+                new ModificationParameters(),
+                null,
+                SequenceMatchingParameters.DEFAULT_STRING_MATCHING
+        );
+    }
+
     /**
      * Add reference areas annotating the de novo tags, using default alpha
      * levels of 0.2. Fixed modifications are not annotated.
@@ -1846,6 +1879,36 @@ public class SpectrumPanel extends GraphicsPanel {
                 0.2f,
                 null,
                 true,
+                mirrored
+        );
+    }
+
+    public void addAutomaticDeNovoSequencing(
+            Tag tag,
+            ArrayList<IonMatch> annotations,
+            int aForwardIon,
+            int aRewindIon,
+            int aDeNovoCharge,
+            boolean showForwardTags,
+            boolean showRewindTags,
+            double forwardIonPercentHeight,
+            double rewindIonPercentHeight,
+            ArrayList<float[]> alphaLevels,
+            boolean excludeFixedModifications,
+            boolean mirrored
+    ) {
+        addAutomaticDeNovoSequencing(
+                tag,
+                annotations.toArray(new IonMatch[0]),
+                aForwardIon,
+                aRewindIon,
+                aDeNovoCharge,
+                showForwardTags,
+                showRewindTags,
+                forwardIonPercentHeight,
+                rewindIonPercentHeight,
+                alphaLevels,
+                excludeFixedModifications,
                 mirrored
         );
     }

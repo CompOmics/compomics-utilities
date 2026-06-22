@@ -233,6 +233,23 @@ public class AnnotationParameters extends ExperimentObject {
 
     }
 
+    public SpecificAnnotationParameters getSpecificAnnotationPreferences(
+            String spectrumKey,
+            SpectrumIdentificationAssumption spectrumIdentificationAssumption,
+            SequenceMatchingParameters modificationSequenceMatchingParameters,
+            SequenceMatchingParameters sequenceMatchingParameters
+    ) {
+        return getSpecificAnnotationParameters(
+                com.compomics.util.experiment.mass_spectrometry.spectra.Spectrum.getSpectrumFile(spectrumKey),
+                com.compomics.util.experiment.mass_spectrometry.spectra.Spectrum.getSpectrumTitle(spectrumKey),
+                spectrumIdentificationAssumption,
+                new ModificationParameters(),
+                null,
+                modificationSequenceMatchingParameters,
+                null
+        );
+    }
+
     /**
      * Constructor setting preferences from search parameters.
      *
@@ -298,6 +315,10 @@ public class AnnotationParameters extends ExperimentObject {
 
             }
         }
+    }
+
+    public void setPreferencesFromSearchParameters(SearchParameters searchParameters) {
+        setParametersFromSearchParameters(searchParameters);
     }
 
     /**

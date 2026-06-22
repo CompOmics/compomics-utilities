@@ -16,6 +16,11 @@ import java.util.stream.IntStream;
 public class Spectrum extends ExperimentObject {
 
     /**
+     * Separator used by legacy string spectrum keys.
+     */
+    public static final String SPECTRUM_KEY_SPLITTER = "_cus_";
+
+    /**
      * The precursor if any.
      */
     public Precursor precursor;
@@ -67,6 +72,40 @@ public class Spectrum extends ExperimentObject {
         this.intensity = intensities;
         this.spectrumLevel = spectrumLevel;
 
+    }
+
+    /**
+     * Returns a legacy string key for the given spectrum.
+     *
+     * @param spectrumFile the spectrum file name
+     * @param spectrumTitle the spectrum title
+     *
+     * @return the spectrum key
+     */
+    public static String getSpectrumKey(String spectrumFile, String spectrumTitle) {
+        return spectrumFile + SPECTRUM_KEY_SPLITTER + spectrumTitle;
+    }
+
+    /**
+     * Returns the spectrum file from a legacy string spectrum key.
+     *
+     * @param spectrumKey the spectrum key
+     *
+     * @return the spectrum file
+     */
+    public static String getSpectrumFile(String spectrumKey) {
+        return spectrumKey.substring(0, spectrumKey.indexOf(SPECTRUM_KEY_SPLITTER));
+    }
+
+    /**
+     * Returns the spectrum title from a legacy string spectrum key.
+     *
+     * @param spectrumKey the spectrum key
+     *
+     * @return the spectrum title
+     */
+    public static String getSpectrumTitle(String spectrumKey) {
+        return spectrumKey.substring(spectrumKey.indexOf(SPECTRUM_KEY_SPLITTER) + SPECTRUM_KEY_SPLITTER.length());
     }
 
     /**
@@ -142,6 +181,74 @@ public class Spectrum extends ExperimentObject {
 
         return precursor;
 
+    }
+
+    /**
+     * Returns the m/z values as an array.
+     *
+     * @return the m/z values as an array
+     */
+    public double[] getMzValuesAsArray() {
+        return mz;
+    }
+
+    /**
+     * Returns the intensity values as an array.
+     *
+     * @return the intensity values as an array
+     */
+    public double[] getIntensityValuesAsArray() {
+        return intensity;
+    }
+
+    /**
+     * Returns the intensity values normalized to 100.
+     *
+     * @return the normalized intensity values
+     */
+    public double[] getIntensityValuesNormalizedAsArray() {
+
+        double maxIntensity = getMaxIntensity();
+        double[] result = new double[intensity.length];
+
+        if (maxIntensity <= 0.0) {
+            return result;
+        }
+
+        for (int i = 0; i < intensity.length; i++) {
+            result[i] = intensity[i] / maxIntensity * 100.0;
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns the spectrum in MGF text format.
+     *
+     * @return the spectrum in MGF text format
+     */
+    public String asMgf() {
+
+        StringBuilder mgf = new StringBuilder();
+        mgf.append("BEGIN IONS").append(System.lineSeparator());
+
+        if (precursor != null) {
+            mgf.append("PEPMASS=").append(precursor.mz).append(System.lineSeparator());
+            if (precursor.possibleCharges.length > 0) {
+                mgf.append("CHARGE=").append(precursor.getPossibleChargesAsString()).append(System.lineSeparator());
+            }
+            if (!Double.isNaN(precursor.rt)) {
+                mgf.append("RTINSECONDS=").append(precursor.rt).append(System.lineSeparator());
+            }
+        }
+
+        for (int i = 0; i < mz.length; i++) {
+            mgf.append(mz[i]).append(' ').append(intensity[i]).append(System.lineSeparator());
+        }
+
+        mgf.append("END IONS").append(System.lineSeparator());
+
+        return mgf.toString();
     }
 
     /**

@@ -207,6 +207,15 @@ public abstract class SpectrumIdentificationAssumption extends ExperimentObject 
         );
     }
 
+    public double getDeltaMass(
+            double measuredMZ,
+            boolean ppm,
+            int minIsotope,
+            int maxIsotope
+    ) {
+        return getDeltaMz(measuredMZ, ppm, minIsotope, maxIsotope);
+    }
+
     /**
      * Returns the precursor isotope number according to the number of protons.
      *

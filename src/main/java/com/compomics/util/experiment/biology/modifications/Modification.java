@@ -18,6 +18,16 @@ import java.util.ArrayList;
  */
 public class Modification extends ExperimentObject {
 
+    public static final int MODAA = ModificationType.modaa.index;
+    public static final int MODN = ModificationType.modn_protein.index;
+    public static final int MODNAA = ModificationType.modnaa_protein.index;
+    public static final int MODC = ModificationType.modc_protein.index;
+    public static final int MODCAA = ModificationType.modcaa_protein.index;
+    public static final int MODNP = ModificationType.modn_peptide.index;
+    public static final int MODNPAA = ModificationType.modnaa_peptide.index;
+    public static final int MODCP = ModificationType.modc_peptide.index;
+    public static final int MODCPAA = ModificationType.modcaa_peptide.index;
+
     /**
      * The version UID for backward compatibility.
      */
@@ -169,6 +179,18 @@ public class Modification extends ExperimentObject {
      */
     public ModificationType getModificationType() {
         return modificationType;
+    }
+
+    public int getType() {
+        return modificationType.index;
+    }
+
+    public boolean isNTerm() {
+        return modificationType.isNTerm();
+    }
+
+    public boolean isCTerm() {
+        return modificationType.isCTerm();
     }
 
     /**

@@ -107,6 +107,10 @@ public class DigestionParameters extends ExperimentObject {
         }
     }
 
+    public static DigestionParameters getDefaultPreferences() {
+        return getDefaultParameters();
+    }
+
     /**
      * Enum for the different types of digestion.
      */
@@ -191,6 +195,12 @@ public class DigestionParameters extends ExperimentObject {
         public String toString() {
             return name;
         }
+    }
+
+    public enum CleavagePreference {
+        enzyme,
+        unSpecific,
+        wholeProtein
     }
 
     /**
@@ -415,6 +425,10 @@ public class DigestionParameters extends ExperimentObject {
 
         return cleavageParameter;
 
+    }
+
+    public CleavagePreference getCleavagePreference() {
+        return CleavagePreference.valueOf(cleavageParameter.name());
     }
 
     /**

@@ -1,12 +1,15 @@
 package com.compomics.util.experiment.identification;
 
 import com.compomics.util.db.object.ObjectsDB;
+import com.compomics.util.db.object.ObjectsCache;
 import com.compomics.util.experiment.identification.matches.PeptideMatch;
 import com.compomics.util.experiment.identification.matches.ProteinMatch;
 import com.compomics.util.experiment.identification.matches.SpectrumMatch;
 import com.compomics.util.experiment.identification.matches_iterators.PeptideMatchesIterator;
 import com.compomics.util.experiment.identification.matches_iterators.ProteinMatchesIterator;
+import com.compomics.util.experiment.identification.matches_iterators.PsmIterator;
 import com.compomics.util.experiment.identification.matches_iterators.SpectrumMatchesIterator;
+import com.compomics.util.experiment.mass_spectrometry.spectra.Spectrum;
 import com.compomics.util.experiment.personalization.ExperimentObject;
 import com.compomics.util.waiting.WaitingHandler;
 
@@ -97,6 +100,163 @@ public class Identification extends ExperimentObject {
      */
     public HashMap<String, HashSet<Long>> getSpectrumIdentification() {
         return identificationKeys.spectrumIdentification;
+    }
+
+    /**
+     * Returns the spectrum files containing spectrum identifications.
+     *
+     * @return the spectrum files containing spectrum identifications
+     */
+    public ArrayList<String> getSpectrumFiles() {
+        return new ArrayList<>(identificationKeys.spectrumIdentification.keySet());
+    }
+
+    /**
+     * Returns the spectrum files containing spectrum identifications.
+     *
+     * @return the spectrum files containing spectrum identifications
+     */
+    public ArrayList<String> getOrderedSpectrumFileNames() {
+        return getSpectrumFiles();
+    }
+
+    /**
+     * Returns the spectrum identification keys for the given spectrum file as
+     * legacy string spectrum keys.
+     *
+     * @param spectrumFile the spectrum file
+     *
+     * @return the spectrum identification keys for the given spectrum file
+     */
+    public HashSet<String> getSpectrumIdentification(String spectrumFile) {
+
+        HashSet<Long> longKeys = identificationKeys.spectrumIdentification.get(spectrumFile);
+        HashSet<String> result = new HashSet<>();
+
+        if (longKeys != null) {
+
+            for (Long key : longKeys) {
+
+                SpectrumMatch spectrumMatch = getSpectrumMatch(key);
+
+                if (spectrumMatch != null) {
+                    result.add(Spectrum.getSpectrumKey(spectrumMatch.getSpectrumFile(), spectrumMatch.getSpectrumTitle()));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns whether the given legacy spectrum key exists.
+     *
+     * @param spectrumKey the spectrum key
+     *
+     * @return true if a match exists
+     */
+    public boolean matchExists(String spectrumKey) {
+        return contains(getLongSpectrumKey(spectrumKey));
+    }
+
+    /**
+     * Returns the assumptions for the given legacy spectrum key.
+     *
+     * @param spectrumKey the spectrum key
+     *
+     * @return the assumptions map
+     */
+    public HashMap<Integer, HashMap<Double, ArrayList<SpectrumIdentificationAssumption>>> getAssumptions(String spectrumKey) {
+
+        SpectrumMatch spectrumMatch = getSpectrumMatch(getLongSpectrumKey(spectrumKey));
+
+        return spectrumMatch == null ? null : spectrumMatch.getAssumptionsMap();
+    }
+
+    /**
+     * Returns the spectrum match for the given legacy spectrum key.
+     *
+     * @param spectrumKey the spectrum key
+     *
+     * @return the spectrum match
+     */
+    public SpectrumMatch getSpectrumMatch(String spectrumKey) {
+        return getSpectrumMatch(getLongSpectrumKey(spectrumKey));
+    }
+
+    /**
+     * Adds spectrum matches using their own keys.
+     *
+     * @param spectrumMatches the spectrum matches
+     */
+    public void addSpectrumMatches(Iterable<SpectrumMatch> spectrumMatches) {
+
+        HashMap<Long, Object> matches = new HashMap<>();
+
+        for (SpectrumMatch spectrumMatch : spectrumMatches) {
+            matches.put(spectrumMatch.getKey(), spectrumMatch);
+        }
+
+        addSpectrumMatches(matches, null, false);
+    }
+
+    /**
+     * Returns a PSM iterator for the given spectrum file.
+     *
+     * @param spectrumFile the spectrum file
+     * @param displayProgress display progress
+     * @param waitingHandler the waiting handler
+     *
+     * @return a PSM iterator
+     */
+    public PsmIterator getPsmIterator(String spectrumFile, boolean displayProgress, WaitingHandler waitingHandler) {
+
+        HashSet<Long> keys = identificationKeys.spectrumIdentification.get(spectrumFile);
+        long[] keyArray = keys == null ? new long[0] : keys.stream().mapToLong(Long::longValue).toArray();
+
+        return new PsmIterator(new SpectrumMatchesIterator(keyArray, this, waitingHandler, displayProgress));
+    }
+
+    /**
+     * Returns a default identification reference.
+     *
+     * @param projectReference the project reference
+     * @param sampleReference the sample reference
+     * @param replicateNumber the replicate number
+     *
+     * @return the default identification reference
+     */
+    public static String getDefaultReference(String projectReference, String sampleReference, int replicateNumber) {
+        return projectReference + "_" + sampleReference + "_" + replicateNumber;
+    }
+
+    /**
+     * Legacy compatibility method. The current database is provided at
+     * construction time.
+     *
+     * @param dbFolder the database folder
+     * @param overwrite overwrite existing database
+     * @param objectsCache the objects cache
+     */
+    public void establishConnection(String dbFolder, boolean overwrite, ObjectsCache objectsCache) {
+        if (objectsDB != null && objectsCache != null) {
+            objectsDB.setObjectCache(objectsCache);
+        }
+    }
+
+    /**
+     * Resolves a legacy string spectrum key to the current long key.
+     *
+     * @param spectrumKey the legacy spectrum key
+     *
+     * @return the long key
+     */
+    private long getLongSpectrumKey(String spectrumKey) {
+
+        String spectrumFile = Spectrum.getSpectrumFile(spectrumKey);
+        String spectrumTitle = Spectrum.getSpectrumTitle(spectrumKey);
+
+        return SpectrumMatch.getKey(spectrumFile, spectrumTitle);
     }
 
     /**
@@ -657,6 +817,13 @@ public class Identification extends ExperimentObject {
      */
     public void close(boolean saveCache) {
         objectsDB.close(saveCache);
+    }
+
+    /**
+     * Closes the database connection and saves the cache.
+     */
+    public void close() {
+        close(true);
     }
 
     /**

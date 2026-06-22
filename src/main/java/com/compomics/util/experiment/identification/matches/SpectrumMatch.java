@@ -1,9 +1,11 @@
 package com.compomics.util.experiment.identification.matches;
 
 import com.compomics.util.experiment.identification.IdentificationMatch;
+import com.compomics.util.experiment.identification.SpectrumIdentificationAssumption;
 import com.compomics.util.experiment.identification.spectrum_assumptions.PeptideAssumption;
 import com.compomics.util.experiment.identification.spectrum_assumptions.TagAssumption;
 import com.compomics.util.experiment.personalization.ExperimentObject;
+import com.compomics.util.experiment.mass_spectrometry.spectra.Spectrum;
 import com.compomics.util.io.IoUtil;
 
 import java.util.ArrayList;
@@ -56,6 +58,17 @@ public class SpectrumMatch extends IdentificationMatch {
      * Constructor for the spectrum match.
      */
     public SpectrumMatch() {
+    }
+
+    /**
+     * Constructor using a legacy string spectrum key.
+     *
+     * @param spectrumKey the spectrum key
+     */
+    public SpectrumMatch(
+            String spectrumKey
+    ) {
+        this(Spectrum.getSpectrumFile(spectrumKey), Spectrum.getSpectrumTitle(spectrumKey));
     }
 
     /**
@@ -196,6 +209,115 @@ public class SpectrumMatch extends IdentificationMatch {
     @Override
     public long getKey() {
         return key;
+    }
+
+    /**
+     * Sets the key using a legacy string spectrum key.
+     *
+     * @param spectrumKey the spectrum key
+     */
+    public void setKey(String spectrumKey) {
+        setSpectrumFile(Spectrum.getSpectrumFile(spectrumKey));
+        setSpectrumTitle(Spectrum.getSpectrumTitle(spectrumKey));
+    }
+
+    /**
+     * Returns a legacy-compatible assumptions map.
+     *
+     * @return the assumptions map
+     */
+    public HashMap<Integer, HashMap<Double, ArrayList<SpectrumIdentificationAssumption>>> getAssumptionsMap() {
+
+        HashMap<Integer, HashMap<Double, ArrayList<SpectrumIdentificationAssumption>>> result = new HashMap<>();
+
+        peptideAssumptionsMap.forEach((advocate, scoreMap) -> {
+            HashMap<Double, ArrayList<SpectrumIdentificationAssumption>> advocateMap = result.computeIfAbsent(advocate, key -> new HashMap<>());
+            scoreMap.forEach((score, assumptions) -> advocateMap.put(score, new ArrayList<>(assumptions)));
+        });
+
+        tagAssumptionsMap.forEach((advocate, scoreMap) -> {
+            HashMap<Double, ArrayList<SpectrumIdentificationAssumption>> advocateMap = result.computeIfAbsent(advocate, key -> new HashMap<>());
+            scoreMap.forEach((score, assumptions) -> advocateMap.put(score, new ArrayList<>(assumptions)));
+        });
+
+        return result;
+    }
+
+    /**
+     * Returns all assumptions for the specified advocate.
+     *
+     * @param advocateId the advocate index
+     *
+     * @return all assumptions indexed by score
+     */
+    public HashMap<Double, ArrayList<SpectrumIdentificationAssumption>> getAllAssumptions(int advocateId) {
+        return getAssumptionsMap().get(advocateId);
+    }
+
+    /**
+     * Returns all assumptions.
+     *
+     * @return all assumptions
+     */
+    public ArrayList<SpectrumIdentificationAssumption> getAllAssumptions() {
+
+        ArrayList<SpectrumIdentificationAssumption> result = new ArrayList<>();
+
+        peptideAssumptionsMap.values().forEach(scoreMap -> scoreMap.values().forEach(result::addAll));
+        tagAssumptionsMap.values().forEach(scoreMap -> scoreMap.values().forEach(result::addAll));
+
+        return result;
+    }
+
+    /**
+     * Adds an identification assumption.
+     *
+     * @param advocateId the advocate index
+     * @param assumption the assumption
+     * @param updateBestAssumption ignored, best assumptions are handled by the
+     * caller when needed
+     */
+    public void addHit(
+            int advocateId,
+            SpectrumIdentificationAssumption assumption,
+            boolean updateBestAssumption
+    ) {
+
+        if (assumption instanceof PeptideAssumption) {
+            addPeptideAssumption(advocateId, (PeptideAssumption) assumption);
+        } else if (assumption instanceof TagAssumption) {
+            addTagAssumption(advocateId, (TagAssumption) assumption);
+        } else {
+            throw new IllegalArgumentException("Unsupported assumption type: " + assumption.getClass().getName());
+        }
+    }
+
+    /**
+     * Removes all assumptions.
+     */
+    public void removeAssumptions() {
+        peptideAssumptionsMap.clear();
+        tagAssumptionsMap.clear();
+    }
+
+    /**
+     * Indicates whether the match contains assumptions.
+     *
+     * @return true if assumptions are present
+     */
+    public boolean hasAssumption() {
+        return hasPeptideAssumption() || hasTagAssumption();
+    }
+
+    /**
+     * Indicates whether the match contains assumptions for the given advocate.
+     *
+     * @param advocateId the advocate index
+     *
+     * @return true if assumptions are present
+     */
+    public boolean hasAssumption(int advocateId) {
+        return hasPeptideAssumption(advocateId) || hasTagAssumption(advocateId);
     }
 
     /**

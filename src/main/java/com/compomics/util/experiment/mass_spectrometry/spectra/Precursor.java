@@ -3,6 +3,7 @@ package com.compomics.util.experiment.mass_spectrometry.spectra;
 import com.compomics.util.experiment.biology.ions.Charge;
 import com.compomics.util.experiment.biology.ions.impl.ElementaryIon;
 import com.compomics.util.experiment.personalization.ExperimentObject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -123,6 +124,36 @@ public class Precursor extends ExperimentObject {
 
         return rt / 60;
 
+    }
+
+    /**
+     * Returns the retention time in seconds.
+     *
+     * @return the retention time in seconds
+     */
+    public double getRt() {
+        return rt;
+    }
+
+    /**
+     * Returns the measured precursor m/z.
+     *
+     * @return the measured precursor m/z
+     */
+    public double getMz() {
+        return mz;
+    }
+
+    public double getIntensity() {
+        return intensity;
+    }
+
+    public ArrayList<Charge> getPossibleCharges() {
+        ArrayList<Charge> result = new ArrayList<>(possibleCharges.length);
+        for (int possibleCharge : possibleCharges) {
+            result.add(new Charge(possibleCharge));
+        }
+        return result;
     }
 
     /**

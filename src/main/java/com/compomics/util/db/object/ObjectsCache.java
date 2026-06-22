@@ -51,6 +51,12 @@ public class ObjectsCache {
 
     /**
      * Constructor.
+     */
+    public ObjectsCache() {
+    }
+
+    /**
+     * Constructor.
      *
      * @param objectsDB the object database
      */
@@ -464,6 +470,25 @@ public class ObjectsCache {
         loadObjectMutex.release();
 
         return isEmpty;
+    }
+
+    /**
+     * Legacy compatibility method. Automated memory management is handled by
+     * the current cache implementation.
+     *
+     * @param automatedMemoryManagement ignored
+     */
+    public void setAutomatedMemoryManagement(boolean automatedMemoryManagement) {
+    }
+
+    /**
+     * Legacy compatibility method. Delegates to the current memory share.
+     *
+     * @param memoryShare the memory share
+     * @param waitingHandler the waiting handler
+     */
+    public void reduceMemoryConsumption(double memoryShare, WaitingHandler waitingHandler) {
+        setMemoryShare(memoryShare);
     }
 
     /**

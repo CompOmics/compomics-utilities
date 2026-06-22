@@ -563,6 +563,10 @@ public class DirecTagParameters extends ExperimentObject implements Identificati
         this.variableModifications = variableModifications;
     }
 
+    public void setPtms(ArrayList<String> variableModifications) {
+        setModifications(variableModifications);
+    }
+
     /**
      * Returns the name of the modification indexed by the given index.
      *

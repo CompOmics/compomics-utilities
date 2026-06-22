@@ -355,6 +355,10 @@ public class SearchParameters extends ExperimentObject implements MarshallablePa
         this.modificationParameters = modificationParameters;
     }
 
+    public void setPtmSettings(ModificationParameters modificationParameters) {
+        setModificationParameters(modificationParameters);
+    }
+
     /**
      * Returns the MS2 ion m/z tolerance.
      *
@@ -499,6 +503,12 @@ public class SearchParameters extends ExperimentObject implements MarshallablePa
      */
     public double getPrecursorAccuracy() {
         return precursorTolerance;
+    }
+
+    public double getPrecursorAccuracyDalton() {
+        return precursorAccuracyType == MassAccuracyType.DA
+                ? precursorTolerance
+                : precursorTolerance * refMass / 1000000.0;
     }
 
     /**

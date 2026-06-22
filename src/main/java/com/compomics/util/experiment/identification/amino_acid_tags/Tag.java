@@ -350,6 +350,43 @@ public class Tag extends ExperimentObject {
 
     }
 
+    public String getTaggedModifiedSequence(
+            ModificationParameters modificationProfile,
+            boolean useHtmlColorCoding,
+            boolean includeHtmlStartEndTags,
+            boolean useShortName,
+            boolean includeTerminalGaps
+    ) {
+        return getTaggedModifiedSequence(
+                modificationProfile,
+                useHtmlColorCoding,
+                includeHtmlStartEndTags,
+                useShortName,
+                includeTerminalGaps,
+                SequenceMatchingParameters.DEFAULT_STRING_MATCHING,
+                null
+        );
+    }
+
+    public String getTaggedModifiedSequence(
+            ModificationParameters modificationProfile,
+            boolean useHtmlColorCoding,
+            boolean includeHtmlStartEndTags,
+            boolean useShortName,
+            boolean includeTerminalGaps,
+            boolean excludeAllFixedPtms
+    ) {
+        return getTaggedModifiedSequence(
+                modificationProfile,
+                useHtmlColorCoding,
+                includeHtmlStartEndTags,
+                useShortName,
+                includeTerminalGaps,
+                SequenceMatchingParameters.DEFAULT_STRING_MATCHING,
+                null
+        );
+    }
+
     /**
      * Returns the modified sequence as an tagged string with potential
      * modification sites color coded or with modification tags, e.g,
@@ -402,7 +439,7 @@ public class Tag extends ExperimentObject {
                 // remove the hidden modifications
                 for (int j = 0; j < variableModifications.length; j++) { // @TODO: possible to do this with streams?
                     String tempMod = variableModifications[j];
-                    if (tempMod != null && !displayedModifications.contains(tempMod)) {
+                    if (tempMod != null && displayedModifications != null && !displayedModifications.contains(tempMod)) {
                         variableModifications[j] = null;
                     }
                 }
@@ -412,7 +449,7 @@ public class Tag extends ExperimentObject {
                 // remove the hidden modifications
                 for (int j = 0; j < fixedModifications.length; j++) { // @TODO: possible to do this with streams?
                     String tempMod = fixedModifications[j];
-                    if (tempMod != null && !displayedModifications.contains(tempMod)) {
+                    if (tempMod != null && displayedModifications != null && !displayedModifications.contains(tempMod)) {
                         fixedModifications[j] = null;
                     }
                 }
