@@ -45,6 +45,14 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      */
     private int batchSize = -1;
     /**
+     * Whether to use knapsack beam search.
+     */
+    private boolean useKnapsack = false;
+    /**
+     * Whether to save all beam search predictions.
+     */
+    private boolean saveAllPredictions = true;
+    /**
      * Whether to force CPU execution.
      */
     private boolean forceCpu = false;
@@ -66,6 +74,8 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
                     && safeEquals(configFile, other.getConfigFile())
                     && numberOfBeams == other.getNumberOfBeams()
                     && batchSize == other.getBatchSize()
+                    && useKnapsack == other.isUseKnapsack()
+                    && saveAllPredictions == other.isSaveAllPredictions()
                     && forceCpu == other.isForceCpu();
         }
 
@@ -90,6 +100,8 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
         output.append("CONFIG_FILE=").append(configFile == null ? "" : configFile).append(newLine);
         output.append("NUMBER_OF_BEAMS=").append(numberOfBeams).append(newLine);
         output.append("BATCH_SIZE=").append(batchSize).append(newLine);
+        output.append("USE_KNAPSACK=").append(useKnapsack).append(newLine);
+        output.append("SAVE_ALL_PREDICTIONS=").append(saveAllPredictions).append(newLine);
         output.append("FORCE_CPU=").append(forceCpu).append(newLine);
 
         return output.toString();
@@ -183,6 +195,42 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      */
     public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
+    }
+
+    /**
+     * Returns whether knapsack beam search is used.
+     *
+     * @return whether knapsack beam search is used
+     */
+    public boolean isUseKnapsack() {
+        return useKnapsack;
+    }
+
+    /**
+     * Sets whether knapsack beam search is used.
+     *
+     * @param useKnapsack whether knapsack beam search is used
+     */
+    public void setUseKnapsack(boolean useKnapsack) {
+        this.useKnapsack = useKnapsack;
+    }
+
+    /**
+     * Returns whether all beam search predictions are saved.
+     *
+     * @return whether all beam search predictions are saved
+     */
+    public boolean isSaveAllPredictions() {
+        return saveAllPredictions;
+    }
+
+    /**
+     * Sets whether all beam search predictions are saved.
+     *
+     * @param saveAllPredictions whether all beam search predictions are saved
+     */
+    public void setSaveAllPredictions(boolean saveAllPredictions) {
+        this.saveAllPredictions = saveAllPredictions;
     }
 
     /**
