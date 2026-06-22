@@ -44,8 +44,7 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      */
     private int numberOfBeams = 5;
     /**
-     * The prediction batch size. A value below one lets InstaNovo use its
-     * configuration default.
+     * The prediction batch size.
      */
     private int batchSize = DEFAULT_BATCH_SIZE;
     /**
@@ -77,7 +76,7 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
                     && safeEquals(instaNovoPlusModel, other.getInstaNovoPlusModel())
                     && safeEquals(configFile, other.getConfigFile())
                     && numberOfBeams == other.getNumberOfBeams()
-                    && batchSize == other.getBatchSize()
+                    && getBatchSize() == other.getBatchSize()
                     && useKnapsack == other.isUseKnapsack()
                     && saveAllPredictions == other.isSaveAllPredictions()
                     && forceCpu == other.isForceCpu();
@@ -103,7 +102,7 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
         output.append("INSTANOVO_PLUS_MODEL=").append(instaNovoPlusModel).append(newLine);
         output.append("CONFIG_FILE=").append(configFile == null ? "" : configFile).append(newLine);
         output.append("NUMBER_OF_BEAMS=").append(numberOfBeams).append(newLine);
-        output.append("BATCH_SIZE=").append(batchSize).append(newLine);
+        output.append("BATCH_SIZE=").append(getBatchSize()).append(newLine);
         output.append("USE_KNAPSACK=").append(useKnapsack).append(newLine);
         output.append("SAVE_ALL_PREDICTIONS=").append(saveAllPredictions).append(newLine);
         output.append("FORCE_CPU=").append(forceCpu).append(newLine);
@@ -189,7 +188,7 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      * @return the batch size
      */
     public int getBatchSize() {
-        return batchSize;
+        return batchSize > 0 ? batchSize : DEFAULT_BATCH_SIZE;
     }
 
     /**
@@ -198,7 +197,7 @@ public class InstaNovoParameters extends ExperimentObject implements Identificat
      * @param batchSize the batch size
      */
     public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
+        this.batchSize = batchSize > 0 ? batchSize : DEFAULT_BATCH_SIZE;
     }
 
     /**

@@ -20,5 +20,9 @@ public class TestInstaNovoParameters extends TestCase {
 
         Assert.assertEquals(InstaNovoParameters.DEFAULT_BATCH_SIZE, parameters.getBatchSize());
         Assert.assertTrue(parameters.toString(false).contains("BATCH_SIZE=" + InstaNovoParameters.DEFAULT_BATCH_SIZE));
+
+        parameters.setBatchSize(-1);
+
+        Assert.assertEquals(InstaNovoParameters.DEFAULT_BATCH_SIZE, parameters.getBatchSize());
     }
 }
