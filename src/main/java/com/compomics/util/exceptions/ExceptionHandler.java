@@ -32,12 +32,51 @@ public abstract class ExceptionHandler {
     public synchronized void catchException(Exception e) {
         
         if (!ignoreExceptions && !exceptionCaught.contains(getExceptionType(e))) {
-            
+
             e.printStackTrace();
             exceptionCaught.add(getExceptionType(e));
+
+            // @TODO: remove once the underlying Nimbus look and feel bug is fixed.
+            // On recent JDKs the Nimbus look and feel can throw a benign
+            // ClassCastException ("ColorUIResource cannot be cast to Boolean" in
+            // NimbusStyle.isOpaque) while building chart popup menus. It does not
+            // affect functionality, so it is logged above but not shown to the user.
+            if (isBenignLookAndFeelException(e)) {
+                return;
+            }
+
             notifyUser(e);
-            
+
         }
+    }
+
+    /**
+     * Indicates whether the given exception is the known benign look and feel
+     * ClassCastException thrown while rendering (e.g. "ColorUIResource cannot be
+     * cast to Boolean" in NimbusStyle). Such exceptions do not affect
+     * functionality and should not be reported to the user.
+     *
+     * @param e the exception to inspect
+     *
+     * @return true if the exception is a benign look and feel rendering exception
+     */
+    private static boolean isBenignLookAndFeelException(Exception e) {
+
+        if (!(e instanceof ClassCastException)) {
+            return false;
+        }
+
+        for (StackTraceElement element : e.getStackTrace()) {
+
+            String className = element.getClassName();
+
+            if (className.startsWith("javax.swing.plaf.nimbus.")
+                    || className.startsWith("javax.swing.plaf.synth.")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
