@@ -306,6 +306,19 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
             }
         }
 
+        if (spectrumId != null) {
+            int separatorIndex = spectrumId.indexOf(':');
+
+            if (separatorIndex >= 0 && separatorIndex < spectrumId.length() - 1) {
+
+                title = spectrumTitleLookup.getTitleAtIndex(spectrumId.substring(separatorIndex + 1));
+
+                if (title != null) {
+                    return title;
+                }
+            }
+        }
+
         throw new IllegalArgumentException("Unable to match InstaNovo spectrum id '" + spectrumId + "' to a spectrum title in file '" + spectrumFileName + "'.");
     }
 
@@ -602,6 +615,10 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
          * Titles indexed by scan or index number tokens parsed from the title.
          */
         private final HashMap<String, String> titleByNumber = new HashMap<>();
+        /**
+         * Titles in spectrum file order.
+         */
+        private final String[] orderedTitles;
 
         /**
          * Constructor.
@@ -616,6 +633,8 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
             if (spectrumTitles == null || spectrumTitles.length == 0) {
                 throw new IllegalArgumentException("No spectra found for file '" + spectrumFileName + "'.");
             }
+
+            orderedTitles = spectrumTitles;
 
             for (String title : spectrumTitles) {
                 addTitle(title);
@@ -705,6 +724,32 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
             String normalizedNumber = normalizeNumber(candidate);
 
             return normalizedNumber == null ? null : titleByNumber.get(normalizedNumber);
+        }
+
+        /**
+         * Returns a title by zero-based spectrum position.
+         *
+         * @param candidate the candidate index
+         *
+         * @return the title, or null if not found
+         */
+        private String getTitleAtIndex(String candidate) {
+
+            String normalizedNumber = normalizeNumber(candidate);
+
+            if (normalizedNumber == null) {
+                return null;
+            }
+
+            int index;
+
+            try {
+                index = Integer.parseInt(normalizedNumber);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+
+            return index >= 0 && index < orderedTitles.length ? orderedTitles[index] : null;
         }
 
         /**

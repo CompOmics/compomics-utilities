@@ -168,6 +168,31 @@ public class TestInstaNovoIdfileReader extends TestCase {
     }
 
     /**
+     * Tests matching InstaNovo positional spectrum ids to descriptive MGF
+     * titles.
+     *
+     * @throws Exception if an exception occurs
+     */
+    public void testSpectrumTitleLookupWithPositionalSpectrumId() throws Exception {
+
+        File csvFile = writeCsv(
+                "positional-titles.instanovo.csv",
+                "experiment_name,scan_number,spectrum_id,precursor_mz,precursor_charge,prediction_id,predictions,log_probs\n"
+                + "example,0,example:0,419.314971923828,2,0,PEPTIDE,-1.0\n"
+        );
+
+        IdfileReader idfileReader = new InstaNovoIdfileReader(csvFile);
+        SimpleSpectrumProvider spectrumProvider = new SimpleSpectrumProvider(
+                new String[]{"example"},
+                new String[]{"Cmpd 3543, +MSn(450.6095), 22.5 min", "Cmpd 3544, +MSn(697.8400), 22.5 min"}
+        );
+        ArrayList<SpectrumMatch> spectrumMatches = idfileReader.getAllSpectrumMatches(spectrumProvider, null, new SearchParameters());
+
+        Assert.assertEquals(1, spectrumMatches.size());
+        Assert.assertEquals("Cmpd 3543, +MSn(450.6095), 22.5 min", spectrumMatches.get(0).getSpectrumTitle());
+    }
+
+    /**
      * Tests charge parsing robustness.
      *
      * @throws Exception if an exception occurs
