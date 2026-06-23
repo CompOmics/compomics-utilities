@@ -166,6 +166,11 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
 
                 ParsedPeptide parsedPeptide = parsePeptide(prediction, lineNumber);
                 Peptide peptide = new Peptide(parsedPeptide.sequence, parsedPeptide.modificationMatches);
+                peptide.estimateTheoreticMass(
+                        searchParameters.getModificationParameters(),
+                        null,
+                        SequenceMatchingParameters.DEFAULT_STRING_MATCHING
+                );
                 PeptideAssumption peptideAssumption = new PeptideAssumption(
                         peptide,
                         1,
