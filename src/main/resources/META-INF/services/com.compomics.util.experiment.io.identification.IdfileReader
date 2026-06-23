@@ -12,3 +12,6 @@ com.compomics.util.experiment.io.identification.idfilereaders.OnyaseIdfileReader
 com.compomics.util.experiment.io.identification.idfilereaders.XTandemIdfileReader
 com.compomics.util.experiment.io.identification.idfilereaders.CossIdfileReader
 com.compomics.util.experiment.io.identification.idfilereaders.SageIdfileReader
+com.compomics.util.experiment.io.identification.idfilereaders.InstaNovoIdfileReader
+com.compomics.util.experiment.io.identification.idfilereaders.InstaNovoPlusIdfileReader
+com.compomics.util.experiment.io.identification.idfilereaders.InstaNovoRefinedIdfileReader

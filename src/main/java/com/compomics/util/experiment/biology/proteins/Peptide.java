@@ -292,6 +292,10 @@ public class Peptide extends ExperimentObject {
         return proteinMapping;
     }
 
+    public ArrayList<String> getParentProteinsNoRemapping() {
+        return proteinMapping == null ? null : new ArrayList<>(proteinMapping.keySet());
+    }
+
     /**
      * Sets the protein mapping as a map of 0-based indexes for every protein
      * accession.
@@ -381,6 +385,22 @@ public class Peptide extends ExperimentObject {
     public ModificationMatch[] getVariableModifications() {
 
         return variableModifications == null ? ModificationMatch.NO_MOD : variableModifications;
+    }
+
+    public ModificationMatch[] getModificationMatches() {
+        return getVariableModifications();
+    }
+
+    public boolean isModified() {
+        return getVariableModifications().length > 0;
+    }
+
+    public int getNModifications() {
+        return getVariableModifications().length;
+    }
+
+    public static String getPeptideModificationsAsString(Peptide peptide, boolean variableOnly) {
+        return PeptideUtils.getVariableModificationsAsString(peptide);
     }
 
     /**
@@ -1312,6 +1332,32 @@ public class Peptide extends ExperimentObject {
                 useHtmlColorCoding,
                 includeHtmlStartEndTags,
                 useShortName
+        );
+    }
+
+    public String getTaggedModifiedSequence(
+            ModificationParameters modificationProfile,
+            boolean useHtmlColorCoding,
+            boolean includeHtmlStartEndTags,
+            boolean useShortName,
+            boolean excludeAllFixedPtms
+    ) {
+        ModificationParameters displayedModifications = excludeAllFixedPtms
+                ? new ModificationParameters(modificationProfile)
+                : modificationProfile;
+
+        if (excludeAllFixedPtms) {
+            displayedModifications.getFixedModifications().clear();
+        }
+
+        return getTaggedModifiedSequence(
+                displayedModifications,
+                null,
+                SequenceMatchingParameters.DEFAULT_STRING_MATCHING,
+                useHtmlColorCoding,
+                includeHtmlStartEndTags,
+                useShortName,
+                null
         );
     }
 

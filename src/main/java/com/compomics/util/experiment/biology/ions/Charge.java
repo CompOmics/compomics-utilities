@@ -9,9 +9,23 @@ package com.compomics.util.experiment.biology.ions;
 public class Charge {
 
     /**
+     * Legacy charge value field.
+     */
+    public int value;
+
+    /**
      * Empty default constructor.
      */
     public Charge() {
+    }
+
+    /**
+     * Constructor with a charge value.
+     *
+     * @param value the charge value
+     */
+    public Charge(int value) {
+        this.value = value;
     }
 
     /**

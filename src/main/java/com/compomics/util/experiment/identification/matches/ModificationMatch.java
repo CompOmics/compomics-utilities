@@ -71,6 +71,10 @@ public class ModificationMatch extends ExperimentObject {
         return modification;
     }
 
+    public String getTheoreticPtm() {
+        return getModification();
+    }
+
     /**
      * Sets the theoretic PTM.
      *
@@ -79,6 +83,10 @@ public class ModificationMatch extends ExperimentObject {
     public void setModification(String modName) {
         
         this.modification = modName;
+    }
+
+    public void setTheoreticPtm(String modName) {
+        setModification(modName);
     }
 
     /**
@@ -92,6 +100,10 @@ public class ModificationMatch extends ExperimentObject {
     public int getSite() {
         
         return modifiedSite;
+    }
+
+    public int getModificationSite() {
+        return getSite();
     }
 
     /**
@@ -114,6 +126,14 @@ public class ModificationMatch extends ExperimentObject {
     public boolean getConfident() {
         
         return confident;
+    }
+
+    public boolean isConfident() {
+        return getConfident();
+    }
+
+    public boolean isVariable() {
+        return true;
     }
 
     /**

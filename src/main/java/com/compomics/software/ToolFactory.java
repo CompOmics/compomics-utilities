@@ -44,6 +44,7 @@ public class ToolFactory {
      * The command line argument for mgf files for SearchGUI.
      */
     public static final String SEARCHGUI_SPECTRUM_FILE_OPTION = "-mgf";
+    public static final String searchGuiSpectrumFileOption = SEARCHGUI_SPECTRUM_FILE_OPTION;
     /**
      * The command line argument for FASTA file for SearchGUI.
      */
@@ -56,10 +57,12 @@ public class ToolFactory {
      * The command line argument for a parameters file for SearchGUI.
      */
     public static final String SEARCHGUI_PARAMETERS_FILE_OPTION = "-identification_parameters";
+    public static final String searchGuiParametersFileOption = SEARCHGUI_PARAMETERS_FILE_OPTION;
     /**
      * The command line argument for an output folder.
      */
     public static final String OUTPUT_FOLDER_OPTION = "-output_folder";
+    public static final String outputFolderOption = OUTPUT_FOLDER_OPTION;
     /**
      * The command line argument for the species.
      */

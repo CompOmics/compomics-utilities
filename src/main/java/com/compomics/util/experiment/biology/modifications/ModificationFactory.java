@@ -281,6 +281,10 @@ public class ModificationFactory implements ModificationProvider {
         return modificationMap.containsKey(name);
     }
 
+    public boolean containsPTM(String name) {
+        return containsModification(name);
+    }
+
     /**
      * Returns the names of the default modifications.
      *
@@ -335,6 +339,10 @@ public class ModificationFactory implements ModificationProvider {
      */
     public ArrayList<String> getModifications() {
         return new ArrayList<>(modificationMap.keySet());
+    }
+
+    public ArrayList<String> getPTMs() {
+        return getModifications();
     }
 
     /**
@@ -405,6 +413,18 @@ public class ModificationFactory implements ModificationProvider {
      */
     public void setColor(String expectedModification, int color) {
         userColors.put(expectedModification, color);
+    }
+
+    public void setColor(String expectedModification, Color color) {
+        setColor(expectedModification, color.getRGB());
+    }
+
+    public void addFixedModifications(
+            ModificationParameters modificationParameters,
+            com.compomics.util.experiment.identification.amino_acid_tags.Tag tag,
+            com.compomics.util.parameters.identification.advanced.SequenceMatchingParameters sequenceMatchingParameters
+    ) {
+        // Fixed modifications are resolved on demand in Utilities 5.
     }
 
     /**

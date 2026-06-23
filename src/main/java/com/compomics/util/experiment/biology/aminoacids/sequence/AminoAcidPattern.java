@@ -1,6 +1,7 @@
 package com.compomics.util.experiment.biology.aminoacids.sequence;
 
 import com.compomics.util.experiment.biology.aminoacids.AminoAcid;
+import com.compomics.util.experiment.identification.matches.ModificationMatch;
 import com.compomics.util.experiment.personalization.ExperimentObject;
 import com.compomics.util.parameters.identification.advanced.SequenceMatchingParameters;
 import com.compomics.util.parameters.identification.advanced.SequenceMatchingParameters.MatchingType;
@@ -144,6 +145,14 @@ public class AminoAcidPattern extends ExperimentObject {
      */
     public HashMap<Integer, ArrayList<Character>> getAaTargeted() {
         return residueTargeted;
+    }
+
+    public ArrayList<Integer> getModificationIndexes() {
+        return new ArrayList<>();
+    }
+
+    public ArrayList<ModificationMatch> getModificationsAt(int site) {
+        return new ArrayList<>();
     }
 
     /**

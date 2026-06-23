@@ -128,6 +128,8 @@ public class SequenceMatchingParameters extends ExperimentObject {
      */
     public static final SequenceMatchingParameters DEFAULT_STRING_MATCHING = getStringMatching();
 
+    public static final SequenceMatchingParameters defaultStringMatching = DEFAULT_STRING_MATCHING;
+
     /**
      * Constructor for empty preferences.
      */

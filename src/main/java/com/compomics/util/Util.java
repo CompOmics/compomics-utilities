@@ -1,7 +1,9 @@
 package com.compomics.util;
 
 import com.compomics.util.gui.waiting.waitinghandlers.ProgressDialogX;
+import com.compomics.util.gui.file_handling.FileChooserUtil;
 import java.awt.Color;
+import java.awt.Component;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -694,5 +696,48 @@ public class Util {
 
         return sb.toString();
 
+    }
+
+    public static File getUserSelectedFile(
+            Component parent,
+            String fileEnding,
+            String fileFormatDescription,
+            String dialogTitle,
+            String lastSelectedFolder,
+            String suggestedFileName,
+            boolean openDialog
+    ) {
+        return FileChooserUtil.getUserSelectedFile(
+                parent,
+                fileEnding,
+                fileFormatDescription,
+                dialogTitle,
+                lastSelectedFolder,
+                suggestedFileName,
+                openDialog
+        );
+    }
+
+    public static boolean deleteDir(File directory) {
+        if (directory == null || !directory.exists()) {
+            return true;
+        }
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDir(file);
+                } else if (!file.delete()) {
+                    return false;
+                }
+            }
+        }
+        return directory.delete();
+    }
+
+    public static String getFileName(File file) {
+        String name = file.getName();
+        int extensionIndex = name.lastIndexOf('.');
+        return extensionIndex > 0 ? name.substring(0, extensionIndex) : name;
     }
 }

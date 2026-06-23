@@ -14,11 +14,11 @@ public enum ThermoRawFileParserOutputFormat {
     /**
      * mzML generic PSI format.
      */
-    mzML(1, "mzML", "mzML generic PSI format", ".mzml"),
+    mzML(1, "mzML", "mzML generic PSI format", ".mzML"),
     /**
      * Indexed mzML generic PSI format.
      */
-    mzMLIndexed(2, "mzML (indexed)", "mzML generic PSI format", ".mzml");
+    mzMLIndexed(2, "mzML (indexed)", "mzML generic PSI format", ".mzML");
 
     /**
      * The index of the format.

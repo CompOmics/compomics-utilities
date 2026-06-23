@@ -3,6 +3,7 @@ package com.compomics.util.parameters.identification.search;
 import com.compomics.util.experiment.personalization.ExperimentObject;
 import com.compomics.util.experiment.biology.modifications.Modification;
 import com.compomics.util.experiment.biology.modifications.ModificationFactory;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -251,6 +252,10 @@ public class ModificationParameters extends ExperimentObject {
      */
     public void setColor(String expectedModification, int color) {
         colors.put(expectedModification, color);
+    }
+
+    public void setColor(String expectedModification, Color color) {
+        setColor(expectedModification, color.getRGB());
     }
 
     /**
