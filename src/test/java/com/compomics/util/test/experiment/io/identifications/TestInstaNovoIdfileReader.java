@@ -301,6 +301,8 @@ public class TestInstaNovoIdfileReader extends TestCase {
         PeptideAssumption peptideAssumption = assumptions.firstEntry().getValue().get(0);
         Assert.assertEquals("DMNSPK", peptideAssumption.getPeptide().getSequence());
         Assert.assertEquals(2, peptideAssumption.getPeptide().getVariableModifications().length);
+        Assert.assertTrue(peptideAssumption.getPeptide().getMass() > 0.0);
+        Assert.assertTrue(peptideAssumption.getTheoreticMz() > 0.0);
         Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.getAdvocate(advocateIndex).getName()));
 
         if (advocateIndex == Advocate.instanovoRefined.getIndex()) {
@@ -344,6 +346,8 @@ public class TestInstaNovoIdfileReader extends TestCase {
 
         Assert.assertEquals(expectedSequence, peptideAssumption.getPeptide().getSequence());
         Assert.assertEquals(expectedVariableModifications, peptideAssumption.getPeptide().getVariableModifications().length);
+        Assert.assertTrue(peptideAssumption.getPeptide().getMass() > 0.0);
+        Assert.assertTrue(peptideAssumption.getTheoreticMz() > 0.0);
         Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.getAdvocate(advocateIndex).getName()));
 
         if (advocateIndex == Advocate.instanovoRefined.getIndex()) {
