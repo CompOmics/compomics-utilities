@@ -124,21 +124,24 @@ public class TestInstaNovoIdfileReader extends TestCase {
                 new InstaNovoIdfileReader(writeCsv("sample.instanovo.csv", INSTANOVO_V1_2_2)),
                 Advocate.instanovo.getIndex(),
                 "DMNSPK",
-                2
+                2,
+                -1147.98681640625
         );
 
         assertSampleReader(
                 new InstaNovoPlusIdfileReader(writeCsv("sample.instanovoplus.csv", INSTANOVOPLUS_V1_2_2)),
                 Advocate.instanovoPlus.getIndex(),
                 "MCIPDQPMEVDNEDDAPLPPPEAR",
-                2
+                2,
+                -3.6934256553649902
         );
 
         assertSampleReader(
                 new InstaNovoRefinedIdfileReader(writeCsv("sample.instanovo.refined.csv", INSTANOVO_COMBINED_V1_2_2)),
                 Advocate.instanovoRefined.getIndex(),
                 "LIRPLLK",
-                0
+                0,
+                -0.6334811449050903
         );
     }
 
@@ -326,7 +329,8 @@ public class TestInstaNovoIdfileReader extends TestCase {
             IdfileReader idfileReader,
             int advocateIndex,
             String expectedSequence,
-            int expectedVariableModifications
+            int expectedVariableModifications,
+            double expectedLogProbability
     ) throws Exception {
 
         ArrayList<SpectrumMatch> spectrumMatches = idfileReader.getAllSpectrumMatches(new SimpleSpectrumProvider(), null, new SearchParameters());
@@ -346,6 +350,8 @@ public class TestInstaNovoIdfileReader extends TestCase {
 
         Assert.assertEquals(expectedSequence, peptideAssumption.getPeptide().getSequence());
         Assert.assertEquals(expectedVariableModifications, peptideAssumption.getPeptide().getVariableModifications().length);
+        Assert.assertEquals(expectedLogProbability, peptideAssumption.getRawScore(), 0.0);
+        Assert.assertEquals(expectedLogProbability, peptideAssumption.getScore(), 0.0);
         Assert.assertTrue(peptideAssumption.getPeptide().getMass() > 0.0);
         Assert.assertTrue(peptideAssumption.getTheoreticMz() > 0.0);
         Assert.assertTrue(idfileReader.getSoftwareVersions().containsKey(Advocate.getAdvocate(advocateIndex).getName()));

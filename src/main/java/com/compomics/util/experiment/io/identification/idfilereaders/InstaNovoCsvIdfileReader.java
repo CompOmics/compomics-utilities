@@ -162,7 +162,7 @@ abstract class InstaNovoCsvIdfileReader implements IdfileReader {
                 String spectrumTitle = getSpectrumTitle(spectrumTitleLookup, spectrumFileName, spectrumId, scanNumber);
 
                 double logProbability = Util.readDoubleAsString(getValue(values, scoreIndex));
-                double score = -logProbability;
+                double score = logProbability;
 
                 ParsedPeptide parsedPeptide = parsePeptide(prediction, lineNumber);
                 Peptide peptide = new Peptide(parsedPeptide.sequence, parsedPeptide.modificationMatches);
