@@ -26,6 +26,8 @@ import com.compomics.util.parameters.identification.IdentificationParameters;
 import static com.compomics.util.parameters.identification.IdentificationParameters.CURRENT_VERSION;
 import com.compomics.util.parameters.identification.tool_specific.MetaMorpheusParameters;
 import com.compomics.util.parameters.identification.tool_specific.SageParameters;
+import com.compomics.util.parameters.identification.tool_specific.InstaNovoParameters;
+import com.compomics.util.parameters.identification.tool_specific.InstaNovoPlusParameters;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -301,6 +303,18 @@ public class SearchParameters extends ExperimentObject implements MarshallablePa
             setIdentificationAlgorithmParameter(Advocate.novor.getIndex(), new NovorParameters());
         } else {
             setIdentificationAlgorithmParameter(Advocate.novor.getIndex(), searchParameters.getIdentificationAlgorithmParameter(Advocate.novor.getIndex()));
+        }
+
+        if (searchParameters == null || searchParameters.getIdentificationAlgorithmParameter(Advocate.instanovo.getIndex()) == null) {
+            setIdentificationAlgorithmParameter(Advocate.instanovo.getIndex(), new InstaNovoParameters());
+        } else {
+            setIdentificationAlgorithmParameter(Advocate.instanovo.getIndex(), searchParameters.getIdentificationAlgorithmParameter(Advocate.instanovo.getIndex()));
+        }
+
+        if (searchParameters == null || searchParameters.getIdentificationAlgorithmParameter(Advocate.instanovoPlus.getIndex()) == null) {
+            setIdentificationAlgorithmParameter(Advocate.instanovoPlus.getIndex(), new InstaNovoPlusParameters());
+        } else {
+            setIdentificationAlgorithmParameter(Advocate.instanovoPlus.getIndex(), searchParameters.getIdentificationAlgorithmParameter(Advocate.instanovoPlus.getIndex()));
         }
 
     }
